@@ -36,6 +36,7 @@ class RaspberryThread(threading.Thread):
 
     def pause(self):
         with self.state:
+            print("PAUSING...")
             self.paused = True
             self.should_abort = True  # Set the abort flag
 
