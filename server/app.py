@@ -1,4 +1,5 @@
 from flask import Flask, send_from_directory
+from animations import fillup, shutdown
 import os
 
 # Load the env variables
@@ -20,9 +21,15 @@ def static_proxy(path):
 def root():
   return send_from_directory('./templates', 'index.html')
 
-@app.route("/api/test", methods=["GET"])
-def test():
-    return "testing"
+@app.route("/api/fillup", methods=["GET"])
+def fill():
+    fillup()
+    return "Filling Up!"
+
+@app.route("/api/shutdown", methods=["GET"])
+def shut():
+    shutdown()
+    return "Shut down..."
 
 if __name__ == '__main__':
     # Run server
