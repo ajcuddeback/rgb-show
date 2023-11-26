@@ -13,6 +13,10 @@ export class RgbApiService {
     return this.http.get<any>('/api/fillup');
   }
 
+  staticXmasAnimation(): Observable<any> {
+    return this.http.get<any>('/api/xmas');
+  }
+
   shutDown(): Observable<any> {
     return this.http.get<any>('/api/shutdown');
   }

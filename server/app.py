@@ -1,5 +1,5 @@
 from flask import Flask, send_from_directory
-from animations import fillup
+from animations import fillup, staticXmasColors
 from raspberry import RaspberryThread
 import os
 
@@ -32,6 +32,16 @@ def fill():
   fillup_thread.resume()
   return "working"
 
+@app.route("/api/xmas", methods=["GET"])
+def xmas():
+  global threads
+  global fillup_thread
+  any(thread.pause() for thread in threads)
+  if not staticXmasColors_thread.isAlive():
+    staticXmasColors_thread.start()
+  staticXmasColors_thread.resume()
+  return "working"
+
 @app.route("/api/shutdown", methods=["GET"])
 def shut():
   global threads
@@ -41,10 +51,12 @@ def shut():
 if __name__ == '__main__':
   # Create threads
   fillup_thread = RaspberryThread(function=fillup)
+  staticXmasColors_thread = RaspberryThread(function=staticXmasColors)
 
   # collect threads
   threads = [
-      fillup_thread
+      fillup_thread,
+      staticXmasColors_thread
   ]
 
   # Run server

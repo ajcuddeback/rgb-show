@@ -19,6 +19,12 @@ export class RgbControllerComponent implements OnInit {
     })
   }
 
+  inititateStaticXmasAnimation() {
+    this.rgbApi.staticXmasAnimation().subscribe(response => {
+      console.log("RESPONSE: ", response);
+    })
+  }
+
   shutDown() {
     this.rgbApi.shutDown().subscribe(response => {
       console.log("RESPONSE: ", response)

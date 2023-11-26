@@ -22,6 +22,16 @@ def fillup():
 		climb(color)
 	time.sleep(0.3)
 
+def staticXmasColors():
+	colors = [(255,0,0), (0,255,0), (245,0,245), (255, 255, 0)]
+
+	for i in range(pixels.n):
+			index = i % len(colors)
+			print(index, colors[index])
+			pixels[i] = colors[index]
+	pixels.show()
+
+
 
 def shutdown():
 	print("SHUTTING OFF")
