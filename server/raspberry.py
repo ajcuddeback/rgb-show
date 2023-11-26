@@ -2,13 +2,13 @@ import threading
 from animations import shutdown  # Assuming you have a shutdown function in animations module
 
 class RaspberryThread(threading.Thread):
-    def __init__(self, function, max_runs=None):
+    def __init__(self, function, loop=False, max_runs=1):
         self.paused = True
         self.function_running = False  # Flag to indicate whether the function is currently running
         self.state = threading.Condition()
         self.function = function
-        self.run_count = 0
         self.max_runs = max_runs  # Maximum number of times to run the function
+        self.loop = loop
         super(RaspberryThread, self).__init__()
 
     def start(self):
@@ -17,21 +17,31 @@ class RaspberryThread(threading.Thread):
         super(RaspberryThread, self).start()
 
     def run(self):
-        while True:
-            # If not paused, continue with the regular execution
-            print("Calling function...")
-            with self.state:
-                if not self.paused and self.max_runs != None and self.run_count < self.max_runs:
-                    self.function()
+        if loop:
+            while True:
+                with self.state:
+                    if self.paused:
+                        print("Thread paused. Waiting...")
+                        self.state.wait()
+                        continue
+                print("Running")
+                self.function()
 
-            # Increment the run count
-            self.run_count += 1
+        if not loop:
+            for _ in max_runs:
+                with self.state:
+                    if self.paused:
+                        print("Thread paused. Waiting...")
+                        self.state.wait()
+                        continue
+                print("Running")
+                self.function()
 
-            # After the function completes, check if the thread is paused and shut off lights
-            with self.state:
+        with self.state:
                 if self.paused:
                     print("Thread paused. Shutting off lights...")
                     self.shut_off_lights()
+
 
     def resume(self):
         with self.state:
