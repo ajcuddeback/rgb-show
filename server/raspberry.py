@@ -18,7 +18,7 @@ class RaspberryThread(threading.Thread):
             with self.state:
                 if self.paused:
                     self.state.wait()  # block until notified
-                    shut_off_lights()
+                    self.shut_off_lights()
             while not self.paused:
                 self.should_abort = False  # Reset the abort flag
                 # Call function
