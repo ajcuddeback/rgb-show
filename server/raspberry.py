@@ -4,7 +4,6 @@ from animations import shutdown  # Assuming you have a shutdown function in anim
 class RaspberryThread(threading.Thread):
     def __init__(self, function):
         self.paused = True
-        self.should_abort = False  # Flag to indicate whether to abort the current function
         self.state = threading.Condition()
         self.function = function
         super(RaspberryThread, self).__init__()
@@ -18,12 +17,10 @@ class RaspberryThread(threading.Thread):
             with self.state:
                 if self.paused:
                     print("Thread paused. Waiting...")
-                    self.state.wait()  # block until notified
-
-            if self.should_abort:
-                print("Aborting due to pause. Shutting off lights...")
-                self.shut_off_lights()
-                break
+                    self.state.wait()
+                    break
+                    self.shut_off_lights()
+                
 
             while not self.paused:
                 self.should_abort = False  # Reset the abort flag
@@ -40,7 +37,6 @@ class RaspberryThread(threading.Thread):
         with self.state:
             print("Pausing...")
             self.paused = True
-            self.should_abort = True  # Set the abort flag
 
     def shut_off_lights(self):
         # Add your code to shut off the lights (using the shutdown function or any other method)
