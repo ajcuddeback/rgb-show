@@ -29,6 +29,11 @@ class RaspberryThread(threading.Thread):
             print("Calling function...")
             self.function()
 
+            with self.state:
+                if self.paused:
+                    print("Thread paused. Shutting off lights...")
+                    self.shut_off_lights()
+
     def resume(self):
         with self.state:
             print("Resuming...")
