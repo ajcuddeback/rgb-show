@@ -37,17 +37,17 @@ def shut():
     return "Shut down..."
 
 if __name__ == '__main__':
-    # Create threads
-   fillup_thread = RaspberryThread(function=fillup)
+  # Create threads
+  fillup_thread = RaspberryThread(function=fillup)
 
-    # collect threads
-    threads = [
-        fillup_thread
-    ]
+  # collect threads
+  threads = [
+      fillup_thread
+  ]
 
-    # Run server
-     app.run(
-        debug=True,
-        host='0.0.0.0',
-        port=5000,
-        threaded=True)
+  # Run server
+    app.run(
+      debug=True,
+      host='0.0.0.0',
+      port=5000,
+      threaded=True)
