@@ -10,6 +10,7 @@ class RaspberryThread(threading.Thread):
 
     def start(self):
         self.paused = False
+        print("Starting...")
         super(RaspberryThread, self).start()
 
     def run(self):
@@ -30,6 +31,7 @@ class RaspberryThread(threading.Thread):
 
     def resume(self):
         with self.state:
+            print("Resuming...")
             self.paused = False
             self.state.notify()
 
