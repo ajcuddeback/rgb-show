@@ -30,6 +30,7 @@ class RaspberryThread(threading.Thread):
 
             if self.max_runs is not None and self.run_count >= self.max_runs:
                 print(f"Maximum run count ({self.max_runs}) reached. Shutting off lights...")
+                continue
 
             # Set the flag to indicate that the function is currently running
             self.function_running = True
