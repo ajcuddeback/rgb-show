@@ -13,16 +13,14 @@ class RaspberryThread(threading.Thread):
         self.paused = False
         super(RaspberryThread, self).start()
 
-    def run(self):
-        # self.resume() # unpause self
+     def run(self):
         while True:
             with self.state:
                 if self.paused:
                     self.state.wait()  # block until notified
-                    self.shut_off_lights()
                     if self.should_abort:
+                        self.shut_off_lights()
                         break
-                        shut_off_lights()
             while not self.paused:
                 self.should_abort = False  # Reset the abort flag
                 # Call function
