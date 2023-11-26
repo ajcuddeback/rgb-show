@@ -14,12 +14,12 @@ app = Flask(__name__)
 
 @app.route('/<path:path>', methods=['GET'])
 def static_proxy(path):
-  return send_from_directory('./templates', path)
+  return send_from_directory('../templates', path)
 
 
 @app.route('/')
 def root():
-  return send_from_directory('./templates', 'index.html')
+  return send_from_directory('../templates', 'index.html')
 
 @app.route("/api/fillup", methods=["GET"])
 def fill():
