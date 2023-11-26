@@ -20,7 +20,7 @@ def static_proxy(path):
 def root():
   return send_from_directory('./templates', 'index.html')
 
-@app.route("/test", methods=["GET"])
+@app.route("/api/test", methods=["GET"])
 def test():
     return "testing"
 
