@@ -1,7 +1,4 @@
 from flask import Flask, render_template
-from raspberry import RaspberryThread
-from light_functions import blink_all, all_pins_off, lightshow, cycle_all
-from xmas import russian_xmas
 import os
 
 # Load the env variables
