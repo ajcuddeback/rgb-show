@@ -18,32 +18,14 @@ class RaspberryThread(threading.Thread):
 
     def run(self):
         while True:
-            with self.state:
-                if self.paused:
-                    print("Thread paused. Waiting...")
-                    self.state.wait()
-
-            if self.paused:
-                print("Thread paused. Shutting off lights...")
-                self.shut_off_lights()
-                continue
-
-            if self.max_runs is not None and self.run_count >= self.max_runs:
-                print(f"Maximum run count ({self.max_runs}) reached. Shutting off lights...")
-                continue
-
-            # Set the flag to indicate that the function is currently running
-            self.function_running = True
-
             # If not paused, continue with the regular execution
             print("Calling function...")
-            self.function()
+            with self.state:
+                if not self.paused and self.run_count < self.max_runs:
+                    self.function()
 
             # Increment the run count
             self.run_count += 1
-
-            # Reset the flag after the function has completed
-            self.function_running = False
 
             # After the function completes, check if the thread is paused and shut off lights
             with self.state:
