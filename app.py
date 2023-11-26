@@ -19,6 +19,6 @@ if __name__ == '__main__':
     # Run server
     app.run(
         debug=True,
-        host=os.environ.get("IP_ADDRESS"),
+        host=0.0.0.0,
         port=5000,
         threaded=True)
