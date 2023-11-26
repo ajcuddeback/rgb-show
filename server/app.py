@@ -28,6 +28,7 @@ def fill():
   if not fillup_thread.isAlive():
     fillup_thread.start()
     fillup_thread.resume()
+  return "working"
 
 @app.route("/api/shutdown", methods=["GET"])
 def shut():
