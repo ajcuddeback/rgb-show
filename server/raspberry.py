@@ -13,7 +13,7 @@ class RaspberryThread(threading.Thread):
         self.paused = False
         super(RaspberryThread, self).start()
 
-     def run(self):
+    def run(self):
         while True:
             with self.state:
                 if self.paused:
