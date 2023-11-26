@@ -51,7 +51,7 @@ def shut():
 if __name__ == '__main__':
   # Create threads
   fillup_thread = RaspberryThread(function=fillup)
-  staticXmasColors_thread = RaspberryThread(function=staticXmasColors)
+  staticXmasColors_thread = RaspberryThread(function=staticXmasColors, max_runs=1)
 
   # collect threads
   threads = [
