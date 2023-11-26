@@ -10,8 +10,8 @@ class RaspberryThread(threading.Thread):
         super(RaspberryThread, self).__init__()
 
     def start(self):
-        super(RaspberryThread, self).start()
         self.paused = False
+        super(RaspberryThread, self).start()
 
     def run(self):
         # self.resume() # unpause self
