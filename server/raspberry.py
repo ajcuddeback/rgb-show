@@ -21,8 +21,6 @@ class RaspberryThread(threading.Thread):
                     self.state.wait()
 
             if self.paused:
-                print("Thread paused. Shutting off lights...")
-                self.shut_off_lights()
                 continue
 
             # If not paused, continue with the regular execution
