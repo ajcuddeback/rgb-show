@@ -20,5 +20,5 @@ if __name__ == '__main__':
     app.run(
         debug=True,
         host=os.environ.get("IP_ADDRESS"),
-        port=int(os.environ.get("PORT")),
+        port=5000,
         threaded=True)
