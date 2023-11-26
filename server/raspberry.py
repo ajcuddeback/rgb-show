@@ -13,21 +13,21 @@ class RaspberryThread(threading.Thread):
         print("Starting...")
         super(RaspberryThread, self).start()
 
-    def run(self):
+   def run(self):
         while True:
             with self.state:
                 if self.paused:
                     print("Thread paused. Waiting...")
                     self.state.wait()
-                    break
-                    self.shut_off_lights()
-                
 
-            while not self.paused:
-                self.should_abort = False  # Reset the abort flag
-                # Call function
-                print("Calling function...")
-                self.function()
+            if self.paused:
+                print("Thread paused. Shutting off lights...")
+                self.shut_off_lights()
+                continue
+
+            # If not paused, continue with the regular execution
+            print("Calling function...")
+            self.function()
 
     def resume(self):
         with self.state:
