@@ -28,6 +28,9 @@ class RaspberryThread(threading.Thread):
                 self.shut_off_lights()
                 continue
 
+            if self.max_runs is not None and self.run_count >= self.max_runs:
+                print(f"Maximum run count ({self.max_runs}) reached. Shutting off lights...")
+
             # Set the flag to indicate that the function is currently running
             self.function_running = True
 
@@ -46,11 +49,6 @@ class RaspberryThread(threading.Thread):
                 if self.paused:
                     print("Thread paused. Shutting off lights...")
                     self.shut_off_lights()
-
-                # Check if the maximum run count has been reached
-                if self.max_runs is not None and self.run_count >= self.max_runs:
-                    print(f"Maximum run count ({self.max_runs}) reached. Shutting off lights...")\
-                    break  # Exit the loop
 
     def resume(self):
         with self.state:
