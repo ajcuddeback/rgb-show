@@ -11,6 +11,10 @@ if os.path.exists('.env'):
 
 app = Flask(__name__)
 
+@app.route("/")
+def home():
+    return render_template("public/index.html")
+
 @app.route("/test", methods=["GET"])
 def test():
     return "testing"
