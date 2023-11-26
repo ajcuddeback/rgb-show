@@ -1,5 +1,5 @@
 from flask import Flask, send_from_directory
-from animations import fillup, shutdown
+from animations import fillup
 from raspberry import RaspberryThread
 import os
 
@@ -33,8 +33,6 @@ def fill():
 @app.route("/api/shutdown", methods=["GET"])
 def shut():
   any(thread.pause() for thread in threads)
-  shutdown()
-  return "Shut down..."
 
 if __name__ == '__main__':
   # Create threads

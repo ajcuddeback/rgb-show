@@ -1,4 +1,5 @@
 import threading
+from animations import shutdown
 
 class RaspberryThread(threading.Thread):
     def __init__(self, function):
@@ -16,6 +17,7 @@ class RaspberryThread(threading.Thread):
             with self.state:
                 if self.paused:
                     self.state.wait() #block until notifed
+                    shutdown()
             while not self.paused:
                 # Call function 
                 self.function()
