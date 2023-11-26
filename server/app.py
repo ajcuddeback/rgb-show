@@ -23,17 +23,29 @@ def root():
 
 @app.route("/api/fillup", methods=["GET"])
 def fill():
-    fillup()
-    return "Filling Up!"
+  any(thread.pause() for thread in threads)
+    if not fillup_thread.isAlive():
+      fillup_thread.start()
+    fillup_thread.resume()
 
 @app.route("/api/shutdown", methods=["GET"])
 def shut():
+  def shut():
+    any(thread.pause() for thread in threads)
     shutdown()
     return "Shut down..."
 
 if __name__ == '__main__':
+    # Create threads
+   fillup_thread = RaspberryThread(function=fillup)
+
+    # collect threads
+    threads = [
+        fillup_thread
+    ]
+
     # Run server
-    app.run(
+     app.run(
         debug=True,
         host='0.0.0.0',
         port=5000,
