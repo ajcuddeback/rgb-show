@@ -29,4 +29,3 @@ class RaspberryThread(threading.Thread):
     def pause(self):
         with self.state:
             self.paused = True
-            shutdown()
