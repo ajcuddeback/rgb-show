@@ -21,7 +21,7 @@ class RaspberryThread(threading.Thread):
             # If not paused, continue with the regular execution
             print("Calling function...")
             with self.state:
-                if not self.paused and self.run_count < self.max_runs:
+                if not self.paused and self.max_runs != None and self.run_count < self.max_runs:
                     self.function()
 
             # Increment the run count
