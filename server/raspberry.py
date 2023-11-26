@@ -19,7 +19,7 @@ class RaspberryThread(threading.Thread):
                 if self.paused:
                     self.state.wait()  # block until notified
                     self.shut_off_lights()
-                    if self.should_abort
+                    if self.should_abort:
                         break
                         shut_off_lights()
             while not self.paused:
