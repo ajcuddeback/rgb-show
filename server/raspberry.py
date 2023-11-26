@@ -17,7 +17,6 @@ class RaspberryThread(threading.Thread):
             with self.state:
                 if self.paused:
                     self.state.wait() #block until notifed
-                    shutdown()
             while not self.paused:
                 # Call function 
                 self.function()
@@ -30,3 +29,4 @@ class RaspberryThread(threading.Thread):
     def pause(self):
         with self.state:
             self.paused = True
+            shutdown()
