@@ -10,7 +10,10 @@ export class RgbApiService {
   constructor(private http: HttpClient) { }
 
   fillUpAnimtion(): Observable<any> {
-    console.log("WORKING")
-    return this.http.get<any>('/api/test');
+    return this.http.get<any>('/api/fillup');
+  }
+
+  shutDown(): Observable<any> {
+    return this.http.get<any>('/api/shutdown');
   }
 }

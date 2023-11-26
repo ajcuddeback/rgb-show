@@ -18,4 +18,10 @@ export class RgbControllerComponent implements OnInit {
       console.log("RESPONSE: ", response);
     })
   }
+
+  shutDown() {
+    this.rgbApi.shutDown().subscribe(response => {
+      console.log("RESPONSE: ", response)
+    })
+  }
 }
