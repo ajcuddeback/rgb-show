@@ -17,10 +17,9 @@ def climb(color):
 		time.sleep(0.3)
 
 def fillup():
-	while True:
-		for color in colors:
-			climb(color)
-		time.sleep(0.3)
+	for color in colors:
+		climb(color)
+	time.sleep(0.3)
 
 
 def shutdown():
