@@ -1,5 +1,6 @@
 from flask import Flask, send_from_directory
 from animations import fillup, shutdown
+from raspberry import RaspberryThread
 import os
 
 # Load the env variables
