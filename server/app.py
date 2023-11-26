@@ -25,8 +25,8 @@ def root():
 @app.route("/api/fillup", methods=["GET"])
 def fill():
   any(thread.pause() for thread in threads)
-    if not fillup_thread.isAlive():
-      fillup_thread.start()
+  if not fillup_thread.isAlive():
+    fillup_thread.start()
     fillup_thread.resume()
 
 @app.route("/api/shutdown", methods=["GET"])
