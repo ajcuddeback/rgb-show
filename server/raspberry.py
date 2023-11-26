@@ -19,10 +19,12 @@ class RaspberryThread(threading.Thread):
                 if self.paused:
                     print("Thread paused. Waiting...")
                     self.state.wait()  # block until notified
-                    if self.should_abort:
-                        print("Aborting due to pause. Shutting off lights...")
-                        self.shut_off_lights()
-                        break
+
+            if self.should_abort:
+                print("Aborting due to pause. Shutting off lights...")
+                self.shut_off_lights()
+                break
+
             while not self.paused:
                 self.should_abort = False  # Reset the abort flag
                 # Call function
@@ -36,7 +38,7 @@ class RaspberryThread(threading.Thread):
 
     def pause(self):
         with self.state:
-            print("PAUSING...")
+            print("Pausing...")
             self.paused = True
             self.should_abort = True  # Set the abort flag
 
