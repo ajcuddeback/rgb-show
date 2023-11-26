@@ -11,6 +11,7 @@ class RaspberryThread(threading.Thread):
 
     def start(self):
         super(RaspberryThread, self).start()
+        self.paused = False
 
     def run(self):
         # self.resume() # unpause self
