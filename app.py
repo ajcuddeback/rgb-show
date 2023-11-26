@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, send_from_directory
 import os
 
 # Load the env variables
@@ -11,9 +11,14 @@ if os.path.exists('.env'):
 
 app = Flask(__name__)
 
-@app.route("/")
-def home():
-    return render_template("index.html")
+@app.route('/<path:path>', methods=['GET'])
+def static_proxy(path):
+  return send_from_directory('./templates', path)
+
+
+@app.route('/')
+def root():
+  return send_from_directory('./templates', 'index.html')
 
 @app.route("/test", methods=["GET"])
 def test():
