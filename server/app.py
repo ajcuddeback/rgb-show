@@ -33,6 +33,7 @@ def fill():
 @app.route("/api/shutdown", methods=["GET"])
 def shut():
   any(thread.pause() for thread in threads)
+  return "Shutting down..."
 
 if __name__ == '__main__':
   # Create threads

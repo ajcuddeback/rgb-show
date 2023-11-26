@@ -23,5 +23,6 @@ def fillup():
 
 
 def shutdown():
+	print("SHUTTING OFF")
 	pixels.fill((0,0,0))
 	pixels.show()
