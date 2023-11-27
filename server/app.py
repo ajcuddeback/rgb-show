@@ -49,6 +49,7 @@ def start_animation(animation_name):
     
     # Instantiate the animation class with the NeoPixelController
     if color:
+        print("THERE IS A COLOR")
         animation_instance = animation_class(pixel_controller, color)
     else:
         animation_instance = animation_class(pixel_controller)

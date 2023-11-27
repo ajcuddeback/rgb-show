@@ -12,7 +12,7 @@ class singlecolor:
         self.is_running = True
         while True:
             if self.runs < self.max_runs:
-                self.static_xmas_colors()
+                self.single_color()
                 self.runs += 1
             time.sleep(0.1)
             if not self.check_if_is_running():
@@ -24,6 +24,7 @@ class singlecolor:
     def stop(self):
         self.is_running = False
 
-    def static_xmas_colors(self):
+    def single_color(self):
+        print(f"FILLING {self.color}")
         self.controller.pixels.fill = (self.color)
         self.controller.pixels.show()
