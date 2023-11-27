@@ -26,7 +26,7 @@ def root():
 def fill():
   global threads
   global fillup_thread
-  if not fillup_thread.isAlive():
+  if not fillup_thread.is_alive():
     fillup_thread.start()
   fillup_thread.resume()
   return "working"
@@ -35,7 +35,7 @@ def fill():
 def xmas():
   global threads
   global fillup_thread
-  if not staticXmasColors_thread.isAlive():
+  if not staticXmasColors_thread.is_alive():
     print("going to start it's not alive")
     staticXmasColors_thread.start()
   staticXmasColors_thread.resume()
