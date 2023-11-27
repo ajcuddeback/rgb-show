@@ -28,6 +28,7 @@ def fill():
   global fillup_thread
   if not fillup_thread.isAlive():
     fillup_thread.start()
+  fillup_thread.resume()
   return "working"
 
 @app.route("/api/xmas", methods=["GET"])
@@ -36,6 +37,7 @@ def xmas():
   global fillup_thread
   if not staticXmasColors_thread.isAlive():
     staticXmasColors_thread.start()
+  staticXmasColors_thread.resume()
   return "working"
 
 @app.route("/api/shutdown", methods=["GET"])
