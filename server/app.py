@@ -63,7 +63,7 @@ def start_animation(animation_name):
 
     
 
-@app.route('/stop_animation')
+@app.route('/stop_animation', methods=['POST'])
 def stop_animation():
     global current_animation, animation_thread
 
