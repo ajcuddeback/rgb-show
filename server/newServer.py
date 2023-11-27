@@ -41,7 +41,7 @@ def start_animation(animation_name):
     current_animation = animation_instance
 
     # Start the animation in a new thread
-    animation_thread = threading.Thread(target=run_animation_thread, args=(animation_instance))
+    animation_thread = threading.Thread(target=run_animation_thread, args=(animation_instance,))
     animation_thread.start()
 
     return jsonify({'status': f'{animation_name} started'})
