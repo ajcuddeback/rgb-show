@@ -8,7 +8,6 @@ class RaspberryThread(threading.Thread):
         self.state = threading.Condition()
         self.function = function
         self.max_runs = max_runs  # Maximum number of times to run the function
-        self.run_count = 0
         self.loop = loop
         super(RaspberryThread, self).__init__()
 
@@ -24,11 +23,13 @@ class RaspberryThread(threading.Thread):
                 self.function()
 
             if not self.loop:
-                    if self.paused or self.run_count > self.max_runs:
-                        continue
-                        print("Continuing")
-                    self.function()
-                    self.run_count += 1
+                run_count = 0
+                if self.paused or self.run_count > self.max_runs:
+                    continue
+                    print("Continuing")
+                self.function()
+                run_count += 1
+                print(run_count)
 
             print("RUNNING yes")
             if self.paused:

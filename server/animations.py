@@ -25,10 +25,9 @@ def fillup():
 
 def staticXmasColors():
 	colors = [(255,0,0), (0,255,0), (245,0,245), (255, 255, 0)]
-
+	print("YESH")
 	for i in range(pixels.n):
 			index = i % len(colors)
-			print(index, colors[index])
 			pixels[i] = colors[index]
 	pixels.show()
 
