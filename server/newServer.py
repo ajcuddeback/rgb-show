@@ -2,6 +2,7 @@ from flask import Flask, jsonify, send_from_directory
 import threading
 import board
 from neopixel_controller import NeoPixelController
+from animations.animation1 import animation1
 
 app = Flask(__name__)
 
@@ -32,7 +33,7 @@ def start_animation(animation_name):
 
     # Import and run the selected animation in a new thread
      # Import the animation class dynamically
-    animation_class = getattr(__import__(f'animations', fromlist=['']), animation_name)
+    animation_class = getattr(__import__(f'animations.{animation_name}', fromlist=['']), animation_name)
     
     # Instantiate the animation class with the NeoPixelController
     animation_instance = animation_class(pixel_controller)

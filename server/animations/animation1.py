@@ -1,6 +1,6 @@
 import time
 
-class Animation1:
+class animation1:
     def __init__(self, neo_pixel_controller):
         self.controller = neo_pixel_controller
         self.axis = [[0, 29], [30, 49], [50, 64], [65, 74], [75, 84], [85, 94], [95, 99]]
