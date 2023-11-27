@@ -19,7 +19,7 @@ class RaspberryThread(threading.Thread):
     def run(self):
         run_count = 0
         while True:
-            if self.loop or not self.paused:
+            if self.loop and not self.paused:
                 print("Running")
                 self.function()
 
