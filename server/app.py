@@ -38,6 +38,7 @@ def xmas():
   if not staticXmasColors_thread.is_alive():
     print("going to start it's not alive")
     staticXmasColors_thread.start()
+  print("RESUMING")
   staticXmasColors_thread.resume()
   return "working"
 
