@@ -28,10 +28,9 @@ def start_animation(animation_name):
 
     # Stop the current animation if it's running
     stop_animation()
-
+    global color
     if request.is_json:
         json_data = request.get_json()
-        global color
         # Check if the data is a list (array)
         if 'color' in json_data:
           if isinstance(json_data.color, list):

@@ -25,8 +25,5 @@ class singlecolor:
         self.is_running = False
 
     def static_xmas_colors(self):
-        colors = [(255,0,0), (0,255,0), (245,0,245), (255, 255, 0)]
-        for i in range(self.controller.pixels.n):
-                index = i % len(colors)
-                self.controller.pixels[i] = colors[index]
+        self.controller.pixels.fill = (self.color)
         self.controller.pixels.show()
