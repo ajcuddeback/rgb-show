@@ -1,5 +1,7 @@
 import time
 from adafruit_led_animation.animation.sparkle import Sparkle
+from adafruit_led_animation.animation.sparklepulse import SparklePulse
+from adafruit_led_animation.sequence import AnimationSequence
 
 class sparkleanimation:
     def __init__(self, neo_pixel_controller):
@@ -8,11 +10,18 @@ class sparkleanimation:
     
     def run_animation(self):
         self.is_running = True
-        self.controller.pixels.fill((255,255,255))
-        self.controller.pixels.show()
-        sparkle = Sparkle(self.controller.pixels, speed=.3, color=(255,255,255), num_sparkles=10)
+        sparkle = Sparkle(self.controller.pixels, speed=0.05, color=(255,255,255), num_sparkles=10)
+        sparkle_pulse = SparklePulse(self.controller.pixels, speed=0.05, period=3, color=(255,255,255))
+
+        animations = AnimationSequence(
+            sparkle,
+            sparkle_pulse,
+            advance_interval=5,
+            auto_clear=True,
+        )
+
         while True:
-            sparkle.animate()
+            animations.animate()
             if not self.check_if_is_running():
                 break
 
