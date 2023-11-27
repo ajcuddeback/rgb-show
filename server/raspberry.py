@@ -26,7 +26,7 @@ class RaspberryThread(threading.Thread):
             if not self.loop:
                     if self.paused or self.run_count > self.max_runs:
                         continue
-                    print("Running")
+                        print("Continuing")
                     self.function()
                     self.run_count += 1
 
