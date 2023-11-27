@@ -20,7 +20,7 @@ class RaspberryThread(threading.Thread):
         while True:
             if self.loop or not self.paused:
                 print("Running")
-                self.function()ß
+                self.function()
 
             if not self.loop:
                 run_count = 0
