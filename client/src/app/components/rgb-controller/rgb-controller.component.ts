@@ -22,13 +22,14 @@ export class RgbControllerComponent {
         debounceTime(100)
       ).subscribe(event => {
         const element = event.target as HTMLInputElement;
-        this.changeBrightnessLevel(Math.floor(parseInt(element.value)));
+        console.log("VAL: ", parseInt(element.value))
+        this.changeBrightnessLevel(parseInt(element.value));
       })
     
   }
 
   changeBrightnessLevel(e: number) {
-    this.brightness = Math.floor(e / 100);
+    this.brightness = e / 100;
     this.rgbApi.changeBrightness(this.brightness).subscribe(response => {
       console.log("RESPONSE: ", response)
     })

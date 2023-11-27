@@ -67,6 +67,7 @@ def change_brightness():
         json_data = request.get_json()
         
         if 'brightness' in json_data:
+            print(json_data['brightness'])
             NeoPixelController.change_brightness(json_data['brightness'])
         else:
             return jsonify({'error': 'BRIGHTNESS is required!'}), 400
