@@ -18,18 +18,17 @@ class RaspberryThread(threading.Thread):
         super(RaspberryThread, self).start()
 
     def run(self):
-        with self.state:
-            while True:
-                if self.loop or not self.paused:
+        while True:
+            if self.loop or not self.paused:
+                print("Running")
+                self.function()
+
+            if not self.loop:
+                    if self.paused or self.run_count >= self.max_runs:
+                        break
                     print("Running")
                     self.function()
-
-                if not self.loop:
-                        if self.paused or self.run_count >= self.max_runs:
-                            break
-                        print("Running")
-                        self.function()
-                        self.run_count += 1
+                    self.run_count += 1
 
             if self.paused:
                 print("Thread paused. Shutting off lights...")
