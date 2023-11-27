@@ -19,19 +19,20 @@ class RaspberryThread(threading.Thread):
     def run(self):
         run_count = 0
         while True:
-            if self.loop and not self.paused:
-                self.function()
-            
-            if self.paused:
-                print("Thread paused. Shutting off lights...")
-                self.shut_off_lights()
-                self.state.wait()
+            with self.state:
+                if self.loop and not self.paused:
+                    self.function()
+                
+                if self.paused:
+                    print("Thread paused. Shutting off lights...")
+                    self.shut_off_lights()
+                    self.state.wait()
 
-            if not self.loop:
-                if self.paused or run_count == self.max_runs:
-                    continue
-                self.function()
-                run_count += 1
+                if not self.loop:
+                    if self.paused or run_count == self.max_runs:
+                        continue
+                    self.function()
+                    run_count += 1
 
 
     def resume(self):
