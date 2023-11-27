@@ -60,6 +60,21 @@ def start_animation(animation_name):
 
     return jsonify({'status': f'{animation_name} started'})
 
+
+@app.route('/change_brightness', methods=['POST'])
+def change_brightness():
+    if request.is_json:
+        json_data = request.get_json()
+        
+        if 'brightness' in json_data:
+            NeoPixelController.change_brightness(json_data['brightness'])
+        else:
+            return jsonify({'error': 'BRIGHTNESS is required!'}), 400
+    else:
+        return jsonify({'error': 'Invalid JSON data'}), 400
+    
+    return jsonify({'statue': 'Brightness changed!'})
+    
 @app.route('/stop_animation', methods=['POST'])
 def stop_animation():
     global current_animation, animation_thread
