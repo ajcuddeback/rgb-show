@@ -9,7 +9,7 @@ class NeoPixelController:
             cls._instance.__initialized = False
         return cls._instance
     
-    def __init__(self, num_pixels, pin, brightness=0.3):
+    def __init__(self, num_pixels, pin, brightness=0.2):
         if not self.__initialized:
             self.num_pixels = num_pixels
             self.pin = pin

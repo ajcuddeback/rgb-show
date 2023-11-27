@@ -18,6 +18,7 @@ class climbanimation:
         return self.is_running
     
     def stop(self):
+        print("Stop has been called yo")
         self.is_running = False
 
     def climb(self, color):
