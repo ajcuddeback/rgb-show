@@ -26,17 +26,19 @@ def root():
 def fill():
   global threads
   global fillup_thread
-  if not fillup_thread.is_alive():
+  any(thread.pause() for thread in threads)
+  if not fillup_thread.isAlive():
     fillup_thread.start()
   fillup_thread.resume()
   return "working"
 
 @app.route("/api/xmas", methods=["GET"])
 def xmas():
-  if not staticXmasColors_thread.is_alive():
-    print("going to start it's not alive")
+  global threads
+  global fillup_thread
+  any(thread.pause() for thread in threads)
+  if not staticXmasColors_thread.isAlive():
     staticXmasColors_thread.start()
-  print("RESUMING")
   staticXmasColors_thread.resume()
   return "working"
 
