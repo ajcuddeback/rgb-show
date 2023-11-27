@@ -17,24 +17,20 @@ class RaspberryThread(threading.Thread):
         super(RaspberryThread, self).start()
 
     def run(self):
-        if self.loop:
-            while True:
-                with self.state:
-                    if self.paused:
-                        print("Thread paused. Waiting...")
-                        self.state.wait()
-                        continue
-                print("Running")
-                self.function()
-
-        if not self.loop:
-            for _ in range(self.max_runs):
-                self.function()
-
         with self.state:
-                if self.paused:
-                    print("Thread paused. Shutting off lights...")
-                    self.shut_off_lights()
+            if self.loop:
+                while True:
+                    print("Running")
+                    self.function()
+
+            if not self.loop:
+                for _ in range(self.max_runs):
+                    self.function()
+
+            if self.paused:
+                print("Thread paused. Shutting off lights...")
+                self.state.wait()
+                self.shut_off_lights()
 
 
     def resume(self):
@@ -47,9 +43,7 @@ class RaspberryThread(threading.Thread):
         with self.state:
             print("Pausing...")
             self.paused = True
-            if not self.loop:
-                self.state.wait()
-                self.shut_off_lights()
+            self.state.notify()
 
     def shut_off_lights(self):
         # Add your code to shut off the lights (using the shutdown function or any other method)
