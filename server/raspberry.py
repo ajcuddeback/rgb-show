@@ -30,6 +30,7 @@ class RaspberryThread(threading.Thread):
                     self.function()
                     self.run_count += 1
 
+            print("RUNNING yes")
             if self.paused:
                 print("Thread paused. Shutting off lights...")
                 self.shut_off_lights()
