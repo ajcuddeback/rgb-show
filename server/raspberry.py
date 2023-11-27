@@ -17,7 +17,7 @@ class RaspberryThread(threading.Thread):
         super(RaspberryThread, self).start()
 
     def run(self):
-        if loop:
+        if self.loop:
             while True:
                 with self.state:
                     if self.paused:
@@ -27,8 +27,8 @@ class RaspberryThread(threading.Thread):
                 print("Running")
                 self.function()
 
-        if not loop:
-            for _ in max_runs:
+        if not self.loop:
+            for _ in self.max_runs:
                 with self.state:
                     if self.paused:
                         print("Thread paused. Waiting...")
