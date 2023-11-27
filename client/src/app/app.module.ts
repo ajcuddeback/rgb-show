@@ -15,7 +15,8 @@ import { RgbControllerComponent } from './components/rgb-controller/rgb-controll
   imports: [
     BrowserModule,
     AppRoutingModule,
-    HttpClientModule
+    HttpClientModule,
+    FormsModule
   ],
   providers: [],
   bootstrap: [AppComponent]

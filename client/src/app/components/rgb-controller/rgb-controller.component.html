@@ -1,3 +1,8 @@
+<div class="brightness-adjuster">
+    <label for="range">Brightness Setting</label>
+    <input type="range" min="0" max="100" value="10" #brightnessInput>
+    <div>Current Value: {{this.brightness * 100}}</div>
+</div>
 <div class="controller">
     <button class="fillup" (click)="inititateAnimtion('climbanimation')">Click to begin Fillup!</button>
     <button class="staticxmas" (click)="inititateAnimtion('staticxmas')">Click to begin static xmas!</button>

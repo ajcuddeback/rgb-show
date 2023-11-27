@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, ElementRef, ViewChild } from '@angular/core';
+import { debounceTime, fromEvent } from 'rxjs';
 import { RgbApiService } from 'src/app/services/rgb-api.service';
 
 @Component({
@@ -12,12 +13,30 @@ export class RgbControllerComponent {
   currentAnimation: string = '';
   brightness: number = 0.1;
 
+  @ViewChild('brightnessInput') brightnessInput: ElementRef<HTMLInputElement>;
+
   constructor(private rgbApi: RgbApiService) { }
+
+  ngAfterViewInit(): void {
+      fromEvent(this.brightnessInput.nativeElement, 'input').pipe(
+        debounceTime(100)
+      ).subscribe(event => {
+        const element = event.target as HTMLInputElement;
+        this.changeBrightnessLevel(Math.floor(parseInt(element.value)));
+      })
+    
+  }
+
+  changeBrightnessLevel(e: number) {
+    this.brightness = Math.floor(e / 100);
+    this.rgbApi.changeBrightness(this.brightness).subscribe(response => {
+      console.log("RESPONSE: ", response)
+    })
+  }
 
   getColor(e: any) {
     const color = e.target.value;
     this.color = this.convertHexToRGB(color);
-    console.log("COLOR: ", this.color)
   }
 
   convertHexToRGB(value: string): number[] {
@@ -31,12 +50,6 @@ export class RgbControllerComponent {
   inititateAnimtion(animationName: string) {
     this.currentAnimation = animationName;
     this.rgbApi.startAnimation(animationName, this.color).subscribe(response => {
-      console.log("RESPONSE: ", response);
-    })
-  }
-
-  changeBrightness() {
-    this.rgbApi.startAnimation(this.currentAnimation, this.color).subscribe(response => {
       console.log("RESPONSE: ", response);
     })
   }
