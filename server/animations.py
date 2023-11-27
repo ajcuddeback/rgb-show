@@ -18,7 +18,7 @@ def climb(color):
 
 def fillup():
 	print("Fillin")
-	while true:
+	while True:
 		for color in colors:
 			climb(color)
 		time.sleep(0.3)
