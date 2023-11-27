@@ -8,7 +8,7 @@ class rainbowanimation:
     
     def run_animation(self):
         self.is_running = True
-        rainbow = Rainbow(self.controller.pixels, speed=0.3, period=2)
+        rainbow = Rainbow(self.controller.pixels, speed=0.1, period=2)
         while True:
             rainbow.animate()
             if not self.check_if_is_running():
