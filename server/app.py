@@ -25,28 +25,31 @@ def root():
 def start_animation(animation_name):
     global animation_thread
     global current_animation
+    global color
 
     # Stop the current animation if it's running
     stop_animation()
-    global color
+
     if request.is_json:
         json_data = request.get_json()
-        # Check if the data is a list (array)
+
+        # Check if 'color' is in json_data
         if 'color' in json_data:
-          if isinstance(json_data.color, list):
-              color = tuple(json_data.color)
-              print(color)
-          else:
-              return jsonify({'error': 'JSON data must be an array'}), 400
+            # Check if json_data['color'] is a list
+            if isinstance(json_data['color'], list):
+                color = tuple(json_data['color'])
+                print(color)
+            else:
+                return jsonify({'error': 'JSON data "color" must be an array'}), 400
     else:
         return jsonify({'error': 'Invalid JSON data'}), 400
     
-     # Import the animation class dynamically
+    # Import the animation class dynamically
     animation_class = getattr(__import__(f'animations.{animation_name}', fromlist=['']), animation_name)
     
     # Instantiate the animation class with the NeoPixelController
     if color:
-      animation_instance = animation_class(pixel_controller, color)
+        animation_instance = animation_class(pixel_controller, color)
     else:
         animation_instance = animation_class(pixel_controller)
 
