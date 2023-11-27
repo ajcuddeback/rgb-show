@@ -30,6 +30,7 @@ class RaspberryThread(threading.Thread):
                 self.function()
                 run_count += 1
                 print(run_count)
+                print(self.max_runs)
 
             print("RUNNING yes")
             if self.paused:
