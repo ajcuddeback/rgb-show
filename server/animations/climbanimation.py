@@ -25,6 +25,8 @@ class climbanimation:
         for i in range(len(self.axis)):
             for j in range(self.axis[i][0], self.axis[i][1]):
                 self.controller.pixels[j] = color
+                if not self.check_if_is_running():
+                    break
             self.controller.pixels.show()
             time.sleep(0.3)
 
