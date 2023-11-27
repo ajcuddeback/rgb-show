@@ -28,7 +28,7 @@ class animation1:
         for i in range(len(self.axis)):
             for j in range(self.axis[i][0], self.axis[i][1]):
                 self.contoller.pixels[j] = color
-            self.controllerpixels.show()
+            self.controller.pixels.show()
             time.sleep(0.3)
 
     def fillup(self):
