@@ -43,7 +43,9 @@ def xmas():
 
 @app.route("/api/shutdown", methods=["GET"])
 def shut():
+  print("WORKING ON IT shutt")
   any(thread.pause() for thread in threads)
+  print("SHUT THEM DOWN")
   return "Shutting down..."
 
 if __name__ == '__main__':
