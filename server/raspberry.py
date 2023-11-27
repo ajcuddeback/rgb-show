@@ -8,6 +8,7 @@ class RaspberryThread(threading.Thread):
         self.state = threading.Condition()
         self.function = function
         self.max_runs = max_runs  # Maximum number of times to run the function
+        self.run_count = 0
         self.loop = loop
         super(RaspberryThread, self).__init__()
 
@@ -18,20 +19,22 @@ class RaspberryThread(threading.Thread):
 
     def run(self):
         with self.state:
-            if self.loop:
-                while True:
+            while true:
+                if self.loop or not self.paused:
                     print("Running")
                     self.function()
 
-            if not self.loop:
-                for _ in range(self.max_runs):
-                    self.function()
+                if not self.loop:
+                        if self.paused or self.run_count >= self.max_runs:
+                            break
+                        print("Running")
+                        self.function()
+                        self.run_count += 1
 
             if self.paused:
                 print("Thread paused. Shutting off lights...")
-                self.state.wait()
                 self.shut_off_lights()
-
+                self.state.wait()
 
     def resume(self):
         with self.state:
@@ -43,10 +46,7 @@ class RaspberryThread(threading.Thread):
         with self.state:
             print("Pausing...")
             self.paused = True
-            if not self.loop:
-                print("DOING")
-                self.shut_off_lights()
-                self.state.wait()
+            self.state.notify()
 
     def shut_off_lights(self):
         # Add your code to shut off the lights (using the shutdown function or any other method)

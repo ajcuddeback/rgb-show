@@ -18,9 +18,10 @@ def climb(color):
 
 def fillup():
 	print("Fillin")
-	for color in colors:
-		climb(color)
-	time.sleep(0.3)
+	while true:
+		for color in colors:
+			climb(color)
+		time.sleep(0.3)
 
 def staticXmasColors():
 	colors = [(255,0,0), (0,255,0), (245,0,245), (255, 255, 0)]

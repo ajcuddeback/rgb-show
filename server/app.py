@@ -33,8 +33,6 @@ def fill():
 
 @app.route("/api/xmas", methods=["GET"])
 def xmas():
-  staticXmasColors_thread = RaspberryThread(function=staticXmasColors, loop=False)
-  threads[1] = staticXmasColors_thread
   if not staticXmasColors_thread.is_alive():
     print("going to start it's not alive")
     staticXmasColors_thread.start()
