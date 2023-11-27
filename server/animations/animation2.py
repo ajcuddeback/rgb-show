@@ -14,7 +14,7 @@ class animation2:
         self.is_running = True
         while True:
             if self.runs < self.max_runs:
-                self.staticXmasColors()
+                self.static_xmas_colors()
                 self.runs += 1
             time.sleep(0.1)
             print("working")
@@ -22,10 +22,10 @@ class animation2:
                 print("RUNNING IS NO LONGER, BREAKING FROM LOOP")
                 break
 
-    def staticXmasColors():
+    def static_xmas_colors(self):
         colors = [(255,0,0), (0,255,0), (245,0,245), (255, 255, 0)]
         print("YESH")
-        for i in range(pixels.n):
+        for i in range(self.controller.pixels.n):
                 index = i % len(colors)
-                pixels[i] = colors[index]
-        pixels.show()
+                self.controller.pixels[i] = colors[index]
+        self.controller.pixels.show()
