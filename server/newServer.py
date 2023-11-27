@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, send_from_directory
 import threading
 import board
 from neopixel_controller import NeoPixelController
@@ -13,6 +13,14 @@ animation_thread = None
 
 def run_animation_thread(animation_module):
     animation_module.run_animation(pixel_controller)
+
+@app.route('/<path:path>', methods=['GET'])
+def static_proxy(path):
+  return send_from_directory('../templates', path)
+
+@app.route('/')
+def root():
+  return send_from_directory('../templates', 'index.html')
 
 @app.route('/start_animation/<animation_name>')
 def start_animation(animation_name):
