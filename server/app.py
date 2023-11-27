@@ -43,6 +43,7 @@ def xmas():
 @app.route("/api/shutdown", methods=["GET"])
 def shut():
   print("WORKING ON IT shutt")
+  print(f"{threads}")
   any(thread.pause() for thread in threads)
   print("SHUT THEM DOWN")
   return "Shutting down..."
@@ -53,7 +54,7 @@ if __name__ == '__main__':
   staticXmasColors_thread = RaspberryThread(function=staticXmasColors, loop=False)
 
   # collect threads
-  threads = [
+  global threads = [
       fillup_thread,
       staticXmasColors_thread
   ]
