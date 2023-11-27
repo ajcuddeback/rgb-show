@@ -22,6 +22,10 @@ class animation2:
                 print("RUNNING IS NO LONGER, BREAKING FROM LOOP")
                 break
 
+    def check_if_is_running(self):
+        print("CHECKING....")
+        return self.is_running
+
     def static_xmas_colors(self):
         colors = [(255,0,0), (0,255,0), (245,0,245), (255, 255, 0)]
         print("YESH")
