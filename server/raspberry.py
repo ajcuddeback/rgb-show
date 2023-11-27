@@ -14,7 +14,7 @@ class RaspberryThread(threading.Thread):
     def start(self):
         self.paused = False
         print("Starting...")
-        super(RaspberryThread, self).start()
+        # super(RaspberryThread, self).start()
 
     def run(self):
         with self.state:
