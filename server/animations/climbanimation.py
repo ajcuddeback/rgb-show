@@ -33,4 +33,6 @@ class climbanimation:
     def fillup(self):
         for color in self.colors:
             self.climb(color)
+            if not self.check_if_is_running():
+                    break
         time.sleep(0.3)
