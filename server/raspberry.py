@@ -9,6 +9,7 @@ class RaspberryThread(threading.Thread):
         self.function = function
         self.max_runs = max_runs  # Maximum number of times to run the function
         self.loop = loop
+        self.run_count = 0
         super(RaspberryThread, self).__init__()
 
     def start(self):
@@ -17,7 +18,6 @@ class RaspberryThread(threading.Thread):
         super(RaspberryThread, self).start()
 
     def run(self):
-        run_count = 0
         while True:
             with self.state:
                 if self.loop and not self.paused:
@@ -29,16 +29,17 @@ class RaspberryThread(threading.Thread):
                     self.state.wait()
 
                 if not self.loop:
-                    if self.paused or run_count == self.max_runs:
+                    if self.paused or self.run_count == self.max_runs:
                         continue
                     self.function()
-                    run_count += 1
+                    self.run_count += 1
 
 
     def resume(self):
         with self.state:
             print("Resuming...")
             self.paused = False
+            self.run_count = 0
             self.state.notify()
 
     def pause(self):
