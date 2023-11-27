@@ -28,6 +28,12 @@ export class RgbControllerComponent {
     })
   }
 
+  initiateSparkleAnimation() {
+    this.rgbApi.sparkleAnimation().subscribe(response => {
+      console.log("RESPONSE: ", response);
+    })
+  }
+
   shutDown() {
     this.rgbApi.shutDown().subscribe(response => {
       console.log("RESPONSE: ", response)

@@ -21,6 +21,10 @@ export class RgbApiService {
     return this.http.get<any>('/start_animation/rainbowanimation');
   }
 
+  sparkleAnimation(): Observable<any> {
+    return this.http.get<any>('/start_animation/sparkleanimation');
+  }
+
   shutDown(): Observable<any> {
     return this.http.get<any>('/stop_animation');
   }
