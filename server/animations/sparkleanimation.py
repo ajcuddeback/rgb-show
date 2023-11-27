@@ -8,7 +8,7 @@ class sparkleanimation:
     
     def run_animation(self):
         self.is_running = True
-        self.controller.pixels = (255,255,255)
+        self.controller.pixels.fill((255,255,255))
         self.controller.pixels.show()
         sparkle = Sparkle(self.controller.pixels, speed=.3, color=(255,255,255), num_sparkles=10)
         while True:
