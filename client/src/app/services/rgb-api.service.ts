@@ -10,11 +10,11 @@ export class RgbApiService {
   constructor(private http: HttpClient) { }
 
   fillUpAnimtion(): Observable<any> {
-    return this.http.get<any>('/start_animation/animation1');
+    return this.http.get<any>('/start_animation/climbanimation');
   }
 
   staticXmasAnimation(): Observable<any> {
-    return this.http.get<any>('/start_animation/animation2');
+    return this.http.get<any>('/start_animation/staticxmas');
   }
 
   shutDown(): Observable<any> {
