@@ -1,5 +1,6 @@
 import threading
 from animations import shutdown  # Assuming you have a shutdown function in animations module
+import time
 
 class RaspberryThread(threading.Thread):
     def __init__(self, function, loop=True, max_runs=1):
@@ -29,6 +30,7 @@ class RaspberryThread(threading.Thread):
                     print("LOOPING")
                     print(self.paused)
                     self.function()
+                    time.sleep(0.1)
 
                 if not self.loop:
                     if self.paused or self.run_count == self.max_runs:
