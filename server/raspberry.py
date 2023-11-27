@@ -22,6 +22,7 @@ class RaspberryThread(threading.Thread):
             with self.state:
                 if self.loop and not self.paused:
                     print("LOOPING")
+                    print(self.paused)
                     self.function()
                 
                 if self.paused:
