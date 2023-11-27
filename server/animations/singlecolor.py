@@ -26,5 +26,5 @@ class singlecolor:
 
     def single_color(self):
         print(f"FILLING {self.color}")
-        self.controller.pixels.fill = (self.color)
+        self.controller.pixels.fill(self.color)
         self.controller.pixels.show()
