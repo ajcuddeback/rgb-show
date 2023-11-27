@@ -30,11 +30,6 @@ class RaspberryThread(threading.Thread):
         if not self.loop:
             for _ in range(self.max_runs):
                 with self.state:
-                    if self.paused:
-                        print("Thread paused. Waiting...")
-                        self.state.wait()
-                        continue
-                print("Running")
                 self.function()
 
         with self.state:
@@ -53,6 +48,8 @@ class RaspberryThread(threading.Thread):
         with self.state:
             print("Pausing...")
             self.paused = True
+            if not self.loop:
+                self.shut_off_lights()
 
     def shut_off_lights(self):
         # Add your code to shut off the lights (using the shutdown function or any other method)
