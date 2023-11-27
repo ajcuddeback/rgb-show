@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, send_from_directory
+from flask import Flask, jsonify, send_from_directory, request
 import threading
 import board
 from neopixel_controller import NeoPixelController
@@ -21,7 +21,7 @@ def static_proxy(path):
 def root():
   return send_from_directory('../templates', 'index.html')
 
-@app.route('/start_animation/<animation_name>')
+@app.route('/start_animation/<animation_name>', methods=['POST'])
 def start_animation(animation_name):
     global animation_thread
     global current_animation
@@ -29,11 +29,27 @@ def start_animation(animation_name):
     # Stop the current animation if it's running
     stop_animation()
 
-    # Import the animation class dynamically
+    if request.is_json:
+        json_data = request.get_json()
+        global color
+        # Check if the data is a list (array)
+        if 'color' in json_data:
+          if isinstance(json_data.color, list):
+              color = tuple(json_data.color)
+              print(color)
+          else:
+              return jsonify({'error': 'JSON data must be an array'}), 400
+    else:
+        return jsonify({'error': 'Invalid JSON data'}), 400
+    
+     # Import the animation class dynamically
     animation_class = getattr(__import__(f'animations.{animation_name}', fromlist=['']), animation_name)
     
     # Instantiate the animation class with the NeoPixelController
-    animation_instance = animation_class(pixel_controller)
+    if color:
+      animation_instance = animation_class(pixel_controller, color)
+    else:
+        animation_instance = animation_class(pixel_controller)
 
     current_animation = animation_instance
 
@@ -42,6 +58,8 @@ def start_animation(animation_name):
     animation_thread.start()
 
     return jsonify({'status': f'{animation_name} started'})
+
+    
 
 @app.route('/stop_animation')
 def stop_animation():

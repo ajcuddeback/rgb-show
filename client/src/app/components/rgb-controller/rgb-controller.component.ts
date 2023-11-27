@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { RgbApiService } from 'src/app/services/rgb-api.service';
 
 @Component({
@@ -8,7 +8,23 @@ import { RgbApiService } from 'src/app/services/rgb-api.service';
 })
 export class RgbControllerComponent {
 
+  color: number[] = [0,0,0];
+
   constructor(private rgbApi: RgbApiService) { }
+
+  getColor(e: any) {
+    const color = e.target.value;
+    this.color = this.convertHexToRGB(color);
+    console.log("COLOR: ", this.color)
+  }
+
+  convertHexToRGB(value: string): number[] {
+    const r = parseInt(value.substr(1,2), 16)
+    const g = parseInt(value.substr(3,2), 16)
+    const b = parseInt(value.substr(5,2), 16)
+    return [r, g, b];
+  }
+  
 
   inititateFillUpAnimtion() {
     this.rgbApi.fillUpAnimtion().subscribe(response => {
@@ -30,6 +46,12 @@ export class RgbControllerComponent {
 
   initiateSparkleAnimation() {
     this.rgbApi.sparkleAnimation().subscribe(response => {
+      console.log("RESPONSE: ", response);
+    })
+  }
+
+  initiateSingleColor() {
+    this.rgbApi.singleColor(this.color).subscribe(response => {
       console.log("RESPONSE: ", response);
     })
   }

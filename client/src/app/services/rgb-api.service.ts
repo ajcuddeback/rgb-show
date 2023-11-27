@@ -10,22 +10,26 @@ export class RgbApiService {
   constructor(private http: HttpClient) { }
 
   fillUpAnimtion(): Observable<any> {
-    return this.http.get<any>('/start_animation/climbanimation');
+    return this.http.post<any>('/start_animation/climbanimation', {});
   }
 
   staticXmasAnimation(): Observable<any> {
-    return this.http.get<any>('/start_animation/staticxmas');
+    return this.http.post<any>('/start_animation/staticxmas', {});
   }
 
   rainbowAnimation(): Observable<any> {
-    return this.http.get<any>('/start_animation/rainbowanimation');
+    return this.http.post<any>('/start_animation/rainbowanimation', {});
   }
 
   sparkleAnimation(): Observable<any> {
-    return this.http.get<any>('/start_animation/sparkleanimation');
+    return this.http.post<any>('/start_animation/sparkleanimation', {});
+  }
+
+  singleColor(color: number[]): Observable<any> {
+    return this.http.post<any>('/start_animation/singlecolor', {color: color});
   }
 
   shutDown(): Observable<any> {
-    return this.http.get<any>('/stop_animation');
+    return this.http.post<any>('/stop_animation', {});
   }
 }
