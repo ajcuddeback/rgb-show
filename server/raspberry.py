@@ -29,7 +29,6 @@ class RaspberryThread(threading.Thread):
 
         if not self.loop:
             for _ in range(self.max_runs):
-                with self.state:
                 self.function()
 
         with self.state:
