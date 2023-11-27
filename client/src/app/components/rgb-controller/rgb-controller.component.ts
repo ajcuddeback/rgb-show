@@ -6,12 +6,9 @@ import { RgbApiService } from 'src/app/services/rgb-api.service';
   templateUrl: './rgb-controller.component.html',
   styleUrls: ['./rgb-controller.component.scss']
 })
-export class RgbControllerComponent implements OnInit {
+export class RgbControllerComponent {
 
   constructor(private rgbApi: RgbApiService) { }
-
-  ngOnInit(): void {
-  }
 
   inititateFillUpAnimtion() {
     this.rgbApi.fillUpAnimtion().subscribe(response => {
@@ -21,6 +18,12 @@ export class RgbControllerComponent implements OnInit {
 
   inititateStaticXmasAnimation() {
     this.rgbApi.staticXmasAnimation().subscribe(response => {
+      console.log("RESPONSE: ", response);
+    })
+  }
+
+  inititateRainbowAnimation() {
+    this.rgbApi.rainbowAnimation().subscribe(response => {
       console.log("RESPONSE: ", response);
     })
   }

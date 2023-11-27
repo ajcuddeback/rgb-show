@@ -17,6 +17,10 @@ export class RgbApiService {
     return this.http.get<any>('/start_animation/staticxmas');
   }
 
+  rainbowAnimation(): Observable<any> {
+    return this.http.get<any>('/start_animation/rainbowanimation');
+  }
+
   shutDown(): Observable<any> {
     return this.http.get<any>('/stop_animation');
   }

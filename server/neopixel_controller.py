@@ -18,6 +18,5 @@ class NeoPixelController:
             self.__initialized = True
 
     def turn_off_all_lights(self):
-        print("TURNING THE LIGHTS OFF NOW IN CONTROLLER")
         self.pixels.fill((0,0,0))
         self.pixels.show()
