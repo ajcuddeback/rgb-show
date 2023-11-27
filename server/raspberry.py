@@ -44,6 +44,7 @@ class RaspberryThread(threading.Thread):
             print("Pausing...")
             self.paused = True
             if not self.loop:
+                print("DOING")
                 self.state.wait()
                 self.shut_off_lights
 
