@@ -26,32 +26,8 @@ export class RgbControllerComponent {
   }
   
 
-  inititateFillUpAnimtion() {
-    this.rgbApi.fillUpAnimtion().subscribe(response => {
-      console.log("RESPONSE: ", response);
-    })
-  }
-
-  inititateStaticXmasAnimation() {
-    this.rgbApi.staticXmasAnimation().subscribe(response => {
-      console.log("RESPONSE: ", response);
-    })
-  }
-
-  inititateRainbowAnimation() {
-    this.rgbApi.rainbowAnimation().subscribe(response => {
-      console.log("RESPONSE: ", response);
-    })
-  }
-
-  initiateSparkleAnimation() {
-    this.rgbApi.sparkleAnimation().subscribe(response => {
-      console.log("RESPONSE: ", response);
-    })
-  }
-
-  initiateSingleColor() {
-    this.rgbApi.singleColor(this.color).subscribe(response => {
+  inititateAnimtion(animationName: string) {
+    this.rgbApi.startAnimation(animationName, this.color).subscribe(response => {
       console.log("RESPONSE: ", response);
     })
   }

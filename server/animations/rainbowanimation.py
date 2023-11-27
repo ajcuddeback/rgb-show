@@ -2,9 +2,10 @@ import time
 from adafruit_led_animation.animation.rainbow import Rainbow
 
 class rainbowanimation:
-    def __init__(self, neo_pixel_controller):
+    def __init__(self, neo_pixel_controller, color):
         self.controller = neo_pixel_controller
         self.is_running = False
+        self.color = color
     
     def run_animation(self):
         self.is_running = True

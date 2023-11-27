@@ -2,9 +2,10 @@ from adafruit_led_animation.animation.sparklepulse import SparklePulse
 from adafruit_led_animation.sequence import AnimationSequence
 
 class sparkleanimation:
-    def __init__(self, neo_pixel_controller):
+    def __init__(self, neo_pixel_controller, color):
         self.controller = neo_pixel_controller
         self.is_running = False
+        self.color = color
     
     def run_animation(self):
         self.is_running = True

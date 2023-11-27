@@ -1,9 +1,9 @@
 <div class="controller">
-    <button class="fillup" (click)="inititateFillUpAnimtion()">Click to begin Fillup!</button>
-    <button class="staticxmas" (click)="inititateStaticXmasAnimation()">Click to begin static xmas!</button>
-    <button class="rainbow" (click)="inititateRainbowAnimation()">Click to begin Rainbow!</button>
-    <button class="sparkle" (click)="initiateSparkleAnimation()">Click to begin Sparkle!</button>
-    <button class="singlecolor" (click)="initiateSingleColor()">Click to begin a Single Color!</button>
+    <button class="fillup" (click)="inititateAnimtion('climbanimation')">Click to begin Fillup!</button>
+    <button class="staticxmas" (click)="inititateAnimtion('staticxmas')">Click to begin static xmas!</button>
+    <button class="rainbow" (click)="inititateAnimtion('rainbowanimation')">Click to begin Rainbow!</button>
+    <button class="sparkle" (click)="inititateAnimtion('sparkleanimation')">Click to begin Sparkle!</button>
+    <button class="singlecolor" (click)="inititateAnimtion('singlecolor')">Click to begin a Single Color!</button>
     <button class="clear" (click)="shutDown()">Click to stop animation!</button>
     <input type="color" (input)="getColor($event)">
 </div>

@@ -1,11 +1,12 @@
 import time
 
 class staticxmas:
-    def __init__(self, neo_pixel_controller):
+    def __init__(self, neo_pixel_controller, color):
         self.controller = neo_pixel_controller
         self.is_running = False
         self.max_runs = 1
         self.runs = 0
+        self.color = color
     
     def run_animation(self):
         self.is_running = True

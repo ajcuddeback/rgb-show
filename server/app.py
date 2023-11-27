@@ -42,6 +42,8 @@ def start_animation(animation_name):
                 print(color)
             else:
                 return jsonify({'error': 'JSON data "color" must be an array'}), 400
+        else:
+            return jsonify({'error': 'COLOR is required!'}), 400
     else:
         return jsonify({'error': 'Invalid JSON data'}), 400
     
@@ -49,11 +51,7 @@ def start_animation(animation_name):
     animation_class = getattr(__import__(f'animations.{animation_name}', fromlist=['']), animation_name)
     
     # Instantiate the animation class with the NeoPixelController
-    if color:
-        print("THERE IS A COLOR")
-        animation_instance = animation_class(pixel_controller, color)
-    else:
-        animation_instance = animation_class(pixel_controller)
+    animation_instance = animation_class(pixel_controller, color)
 
     current_animation = animation_instance
 
