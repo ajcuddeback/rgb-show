@@ -13,7 +13,7 @@ current_animation = None
 animation_thread = None
 
 def run_animation_thread(animation_module):
-    animation_module.run_animation(pixel_controller)
+    animation_module.run_animation()
 
 @app.route('/<path:path>', methods=['GET'])
 def static_proxy(path):
