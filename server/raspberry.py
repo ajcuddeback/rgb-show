@@ -2,7 +2,7 @@ import threading
 from animations import shutdown  # Assuming you have a shutdown function in animations module
 
 class RaspberryThread(threading.Thread):
-    def __init__(self, function, loop=False, max_runs=1):
+    def __init__(self, function, loop=True, max_runs=1):
         self.paused = True
         self.function_running = False  # Flag to indicate whether the function is currently running
         self.state = threading.Condition()
