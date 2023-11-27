@@ -26,6 +26,7 @@ def start_animation(animation_name):
     global animation_thread
     global current_animation
     global color
+    color = None
 
     # Stop the current animation if it's running
     stop_animation()
