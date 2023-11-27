@@ -17,13 +17,13 @@ class RaspberryThread(threading.Thread):
         super(RaspberryThread, self).start()
 
     def run(self):
+        run_count = 0
         while True:
             if self.loop or not self.paused:
                 print("Running")
                 self.function()
 
             if not self.loop:
-                run_count = 0
                 print(run_count)
                 print(self.max_runs)
                 if run_count == self.max_runs:
