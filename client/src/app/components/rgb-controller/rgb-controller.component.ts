@@ -9,6 +9,8 @@ import { RgbApiService } from 'src/app/services/rgb-api.service';
 export class RgbControllerComponent {
 
   color: number[] = [0,0,0];
+  currentAnimation: string = '';
+  brightness: number = 0.1;
 
   constructor(private rgbApi: RgbApiService) { }
 
@@ -27,7 +29,14 @@ export class RgbControllerComponent {
   
 
   inititateAnimtion(animationName: string) {
+    this.currentAnimation = animationName;
     this.rgbApi.startAnimation(animationName, this.color).subscribe(response => {
+      console.log("RESPONSE: ", response);
+    })
+  }
+
+  changeBrightness() {
+    this.rgbApi.startAnimation(this.currentAnimation, this.color).subscribe(response => {
       console.log("RESPONSE: ", response);
     })
   }

@@ -26,7 +26,6 @@ def start_animation(animation_name):
     global animation_thread
     global current_animation
     global color
-    color = None
 
     # Stop the current animation if it's running
     stop_animation()
@@ -60,8 +59,6 @@ def start_animation(animation_name):
     animation_thread.start()
 
     return jsonify({'status': f'{animation_name} started'})
-
-    
 
 @app.route('/stop_animation', methods=['POST'])
 def stop_animation():
