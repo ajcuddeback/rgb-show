@@ -29,7 +29,6 @@ def fill():
     fillup_thread.start()
   else:
     fillup_thread.resume()
-  print("ABOUT TO RETURN>> Wait. it wont'")
   return "working"
 
 @app.route("/api/xmas", methods=["GET"])
