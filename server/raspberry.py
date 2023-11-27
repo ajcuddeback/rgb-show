@@ -30,7 +30,6 @@ class RaspberryThread(threading.Thread):
                     print("LOOPING")
                     print(self.paused)
                     self.function()
-                    time.sleep(0.1)
 
                 if not self.loop:
                     if self.paused or self.run_count == self.max_runs:

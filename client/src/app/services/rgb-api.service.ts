@@ -10,7 +10,7 @@ export class RgbApiService {
   constructor(private http: HttpClient) { }
 
   fillUpAnimtion(): Observable<any> {
-    return this.http.get<any>('/api/fillup');
+    return this.http.get<any>('/start_animation/animation1');
   }
 
   staticXmasAnimation(): Observable<any> {
@@ -18,6 +18,6 @@ export class RgbApiService {
   }
 
   shutDown(): Observable<any> {
-    return this.http.get<any>('/api/shutdown');
+    return this.http.get<any>('/stop_animation');
   }
 }
