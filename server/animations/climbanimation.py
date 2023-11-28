@@ -29,6 +29,9 @@ class climbanimation:
                     break
             self.controller.pixels.show()
             time.sleep(0.3)
+            if not self.check_if_is_running():
+                break
+            
 
     def fillup(self):
         for color in self.colors:
