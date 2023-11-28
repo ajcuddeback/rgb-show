@@ -24,11 +24,13 @@ def root():
 @app.route('/start_animation/<animation_name>', methods=['POST'])
 def start_animation(animation_name):
     global animation_thread
-    global current_animation
+    global animation_instance
     global color
 
     # Stop the current animation if it's running
+    print("stoppping...")
     stop_animation()
+    print("STOPED")
 
     if request.is_json:
         json_data = request.get_json()
@@ -51,8 +53,6 @@ def start_animation(animation_name):
     
     # Instantiate the animation class with the NeoPixelController
     animation_instance = animation_class(pixel_controller, color)
-
-    current_animation = animation_instance
 
     # Start the animation in a new thread
     animation_thread = threading.Thread(target=run_animation_thread, args=(animation_instance,))
@@ -78,12 +78,11 @@ def change_brightness():
     
 @app.route('/stop_animation', methods=['POST'])
 def stop_animation():
-    global current_animation, animation_thread
+    global animation_instance, animation_thread
 
     # Stop the current animation if it's running
-    if current_animation:
-        current_animation.stop()
-        current_animation = None
+    if animation_instance:
+        animation_instance.stop()
 
     print("Going to wait for thread to die")
     # Wait for the animation thread to finish
