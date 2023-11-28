@@ -7,7 +7,7 @@ app = Flask(__name__)
 
 pixel_controller = NeoPixelController(num_pixels=100, pin=board.D18)
 
-current_animation = None
+animation_instance = None
 animation_thread = None
 
 def run_animation_thread(animation_module):
