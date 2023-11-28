@@ -90,6 +90,7 @@ def stop_animation():
     if animation_thread and animation_thread.is_alive():
         animation_thread.join()
 
+    print(f"thread died {animation_thread}")
     pixel_controller.turn_off_all_lights()
 
     return jsonify({'status': 'Animation stopped'})
