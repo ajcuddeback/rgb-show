@@ -1,4 +1,5 @@
 import time
+import threading
 
 class climbanimation:
     def __init__(self, neo_pixel_controller, color):
@@ -7,14 +8,17 @@ class climbanimation:
         self.colors = [(255,20,217), (0,255,0), (255,0,0)]
         self.is_running = False
         self.color = color
+        self.lock = threading.Lock()
     
     def run_animation(self):
-        self.is_running = True
+        with self.lock:
+            self.is_running = True
         while True:
             self.fillup()
             print(f"runnimng {self.is_running}")
-            if not self.check_if_is_running():
-                return
+            with self.lock:
+                if not self.check_if_is_running():
+                    return
 
     def check_if_is_running(self):
         return self.is_running
@@ -26,7 +30,8 @@ class climbanimation:
         for i in range(len(self.axis)):
             for j in range(self.axis[i][0], self.axis[i][1]):
                 self.controller.pixels[j] = color
-                if not self.check_if_is_running():
+                with self.lock:
+                    if not self.check_if_is_running():
                     return
             if not self.check_if_is_running():
                 return
@@ -38,6 +43,7 @@ class climbanimation:
     def fillup(self):
         for color in self.colors:
             self.climb(color)
-            if not self.check_if_is_running():
+            with self.lock:
+                if not self.check_if_is_running():
                     return
         time.sleep(0.3)
