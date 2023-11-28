@@ -14,7 +14,7 @@ class NeoPixelController:
             self.num_pixels = num_pixels
             self.pin = pin
             self.brightness = brightness
-            self.pixels = neopixel.NeoPixel(self.pin, self.num_pixels, brightness=self.brightness, auto_write=False, pixel_order=neopixel.RGB)
+            self.pixels = neopixel.NeoPixel(self.pin, self.num_pixels, brightness=self.brightness, auto_write=True, pixel_order=neopixel.RGB)
             self.__initialized = True
 
     def turn_off_all_lights(self):
@@ -22,5 +22,6 @@ class NeoPixelController:
         self.pixels.show()
 
     def change_brightness(self, brightness):
+        print("CHANGING")
         self.brightness = brightness
         self.pixels.brightness = self.brightness
