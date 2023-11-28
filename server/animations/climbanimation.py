@@ -32,7 +32,7 @@ class climbanimation:
                 self.controller.pixels[j] = color
                 with self.lock:
                     if not self.check_if_is_running():
-                    return
+                        return
             if not self.check_if_is_running():
                 return
             self.controller.pixels.show()
