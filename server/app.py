@@ -83,6 +83,7 @@ def stop_animation():
     # Stop the current animation if it's running
     if animation_instance:
         animation_instance.stop()
+        animation_instance = None
 
     print("Going to wait for thread to die")
     # Wait for the animation thread to finish
