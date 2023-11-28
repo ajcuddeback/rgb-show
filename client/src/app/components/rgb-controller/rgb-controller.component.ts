@@ -19,7 +19,7 @@ export class RgbControllerComponent {
 
   ngAfterViewInit(): void {
       fromEvent(this.brightnessInput.nativeElement, 'input').pipe(
-        debounceTime(2000)
+        debounceTime(100)
       ).subscribe(event => {
         const element = event.target as HTMLInputElement;
         console.log("VAL: ", parseInt(element.value))
