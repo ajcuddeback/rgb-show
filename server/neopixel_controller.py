@@ -24,4 +24,3 @@ class NeoPixelController:
     def change_brightness(self, brightness):
         self.brightness = brightness
         self.pixels.brightness = self.brightness
-        self.pixels.show()
