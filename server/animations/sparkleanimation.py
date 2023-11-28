@@ -9,7 +9,7 @@ class sparkleanimation:
     
     def run_animation(self):
         self.is_running = True
-        sparkle_pulse = SparklePulse(self.controller.pixels, speed=0.1, period=3, color=(255,255,255))
+        sparkle_pulse = SparklePulse(self.controller.pixels, speed=0.1, period=3, color=self.color)
 
         animations = AnimationSequence(
             sparkle_pulse,
