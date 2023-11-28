@@ -12,6 +12,7 @@ class climbanimation:
         self.is_running = True
         while True:
             self.fillup()
+            print(f"runnimng {self.is_running}")
             if not self.check_if_is_running():
                 break
 
