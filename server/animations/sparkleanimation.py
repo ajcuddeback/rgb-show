@@ -13,7 +13,6 @@ class sparkleanimation:
 
         animations = AnimationSequence(
             sparkle_pulse,
-            advance_interval=20,
             auto_clear=True,
         )
 
