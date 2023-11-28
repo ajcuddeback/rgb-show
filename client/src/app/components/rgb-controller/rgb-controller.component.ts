@@ -29,7 +29,7 @@ export class RgbControllerComponent {
   }
 
   changeBrightnessLevel(e: number) {
-    this.brightness = e / 500;
+    this.brightness = e / 100;
     this.rgbApi.changeBrightness(this.brightness).subscribe(response => {
       this.rgbApi.startAnimation(this.currentAnimation, this.color);
     })
