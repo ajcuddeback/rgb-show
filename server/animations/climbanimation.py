@@ -14,7 +14,7 @@ class climbanimation:
             self.fillup()
             print(f"runnimng {self.is_running}")
             if not self.check_if_is_running():
-                break
+                return
 
     def check_if_is_running(self):
         return self.is_running
@@ -27,16 +27,17 @@ class climbanimation:
             for j in range(self.axis[i][0], self.axis[i][1]):
                 self.controller.pixels[j] = color
                 if not self.check_if_is_running():
-                    break
+                    return
+            if not self.check_if_is_running():
+                return
             self.controller.pixels.show()
             time.sleep(0.3)
-            if not self.check_if_is_running():
-                break
+            
             
 
     def fillup(self):
         for color in self.colors:
             self.climb(color)
             if not self.check_if_is_running():
-                    break
+                    return
         time.sleep(0.3)
