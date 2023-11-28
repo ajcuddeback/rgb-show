@@ -13,10 +13,10 @@ class climbanimation:
     def run_animation(self):
         with self.lock:
             self.is_running = True
-        while True:
-            self.fillup()
-            print(f"runnimng {self.is_running}")
-            with self.lock:
+        with self.lock:
+            while True:
+                self.fillup()
+                print(f"runnimng {self.is_running}")
                 if not self.check_if_is_running():
                     return
 
@@ -24,7 +24,8 @@ class climbanimation:
         return self.is_running
     
     def stop(self):
-        self.is_running = False
+        with self.lock:
+            self.is_running = False
 
     def climb(self, color):
         for i in range(len(self.axis)):
