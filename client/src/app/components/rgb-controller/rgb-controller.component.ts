@@ -22,7 +22,6 @@ export class RgbControllerComponent {
         debounceTime(100)
       ).subscribe(event => {
         const element = event.target as HTMLInputElement;
-        console.log("VAL: ", parseInt(element.value))
         this.changeBrightnessLevel(parseInt(element.value));
       })
     
@@ -30,16 +29,14 @@ export class RgbControllerComponent {
 
   changeBrightnessLevel(e: number) {
     this.brightness = e / 100;
-    this.rgbApi.changeBrightness(this.brightness).subscribe(response => {
-      // this.rgbApi.startAnimation(this.currentAnimation, this.color).subscribe(response => {
-      //   console.log("RESPONSE: ", response)
-      // });
-    })
+    this.rgbApi.changeBrightness(this.brightness).subscribe(_ => {})
   }
 
   getColor(e: any) {
     const color = e.target.value;
     this.color = this.convertHexToRGB(color);
+    // Reset current animation so the initiate method can be ran again...
+    this.currentAnimation = '';
   }
 
   convertHexToRGB(value: string): number[] {
