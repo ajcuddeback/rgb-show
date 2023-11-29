@@ -1,7 +1,6 @@
 import time
-from animations import AbstractAnimation
 
-class singlecolor(AbstractAnimation):
+class singlecolor:
     def __init__(self, neo_pixel_controller, color):
         self.controller = neo_pixel_controller
         self.color = color
