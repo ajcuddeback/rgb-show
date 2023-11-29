@@ -6,7 +6,7 @@
 # Displays a simple rainbow animation
 
 from adafruit_led_animation.animation.rainbow import Rainbow
-import animations.AbstractAnimation as AbstractAnimation
+from .AbstractAnimation import  AbstractAnimation
 
 class rainbowanimation(AbstractAnimation):
     def run_animation(self):
