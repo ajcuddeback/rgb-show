@@ -1,6 +1,6 @@
 import time
 import threading
-from server.AbstractAnimation import AbstractAnimation
+import AbstractAnimation
 
 class climbanimation(AbstractAnimation):
     def __init__(self, neo_pixel_controller, color):

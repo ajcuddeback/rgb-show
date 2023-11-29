@@ -1,5 +1,5 @@
 import time
-from server.AbstractAnimation import AbstractAnimation
+import AbstractAnimation
 
 class staticxmas(AbstractAnimation):
     def __init__(self, neo_pixel_controller, color):
