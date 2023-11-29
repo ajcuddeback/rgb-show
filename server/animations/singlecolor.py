@@ -1,10 +1,9 @@
 import time
+from animations import AbstractAnimation
 
-class singlecolor:
+class singlecolor(AbstractAnimation):
     def __init__(self, neo_pixel_controller, color):
-        self.controller = neo_pixel_controller
-        self.color = color
-        self.is_running = False
+        super().__init__(neo_pixel_controller, color)
         self.max_runs = 1
         self.runs = 0
     

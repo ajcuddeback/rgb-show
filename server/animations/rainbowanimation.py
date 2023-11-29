@@ -1,6 +1,7 @@
 from adafruit_led_animation.animation.rainbow import Rainbow
+from animations import AbstractAnimation
 
-class rainbowanimation:
+class rainbowanimation(AbstractAnimation):
     def __init__(self, neo_pixel_controller, color):
         self.controller = neo_pixel_controller
         self.color = color
