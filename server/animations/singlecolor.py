@@ -1,10 +1,9 @@
 import time
+from AbstractAnimation import AbstractAnimation
 
-class singlecolor:
+class singlecolor(AbstractAnimation):
     def __init__(self, neo_pixel_controller, color):
-        self.controller = neo_pixel_controller
-        self.color = color
-        self.is_running = False
+        super().__init__(neo_pixel_controller, color)
         self.max_runs = 1
         self.runs = 0
     
@@ -17,12 +16,6 @@ class singlecolor:
             time.sleep(0.1)
             if not self.check_if_is_running():
                 break
-
-    def check_if_is_running(self):
-        return self.is_running
-    
-    def stop(self):
-        self.is_running = False
 
     def single_color(self):
         print(f"FILLING {self.color}")
