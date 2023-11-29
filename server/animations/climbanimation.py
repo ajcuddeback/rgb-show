@@ -37,8 +37,6 @@ class climbanimation(AbstractAnimation):
                 return
             self.controller.pixels.show()
             time.sleep(0.3)
-            
-            
 
     def fillup(self):
         for color in self.colors:
