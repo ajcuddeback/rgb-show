@@ -5,7 +5,6 @@ class AbstractAnimation(ABC):
         self.controller = neo_pixel_controller
         self.color = color
         self.is_running = False
-        super().__init__()
 
     @abstractmethod
     def run_animation(self):
