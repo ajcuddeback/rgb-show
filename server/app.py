@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, send_from_directory, request
+from importlib import import_module
 import threading
 import board
 from neopixel_controller import NeoPixelController
@@ -49,7 +50,14 @@ def start_animation(animation_name):
         return jsonify({'error': 'Invalid JSON data'}), 400
     
     # Import the animation class dynamically
-    animation_class = getattr(__import__(f'animations.{animation_name}', fromlist=['']), animation_name)
+    # Specify the full module path
+    module_path = f'animations.{animation_name}'
+
+    # Import the module dynamically
+    animation_module = import_module(module_path)
+
+    # Get the animation class dynamically
+    animation_class = getattr(animation_module, animation_name)
     
     # Instantiate the animation class with the NeoPixelController
     animation_instance = animation_class(pixel_controller, color)
