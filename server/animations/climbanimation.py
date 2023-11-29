@@ -1,13 +1,20 @@
+#!/usr/bin/env python3
+# Simple Climb Animation for a Christmas Tree
+# Author: Austin Cuddeback (ajcuddeback@gmail.com)
+#
+# This animations highlights a set of lights based on the Axis variable
+# Currently hard coded to my tree
+
 import time
 import threading
 
 class climbanimation:
     def __init__(self, neo_pixel_controller, color):
         self.controller = neo_pixel_controller
+        self.color = color
+        self.is_running = False
         self.axis = [[0, 29], [30, 49], [50, 64], [65, 74], [75, 84], [85, 94], [95, 99]]
         self.colors = [(255,20,217), (0,255,0), (255,0,0)]
-        self.is_running = False
-        self.color = color
         self.lock = threading.Lock()
     
     def run_animation(self):

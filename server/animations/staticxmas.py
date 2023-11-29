@@ -1,12 +1,19 @@
+#!/usr/bin/env python3
+# Static Xmas Color Animation
+# Author: Austin Cuddeback (ajcuddeback@gmail.com)
+#
+# Colors all lights in a pattern of colors
+# Mocks the looks of traditional colorful Xmas light strip
+
 import time
 
 class staticxmas:
     def __init__(self, neo_pixel_controller, color):
         self.controller = neo_pixel_controller
+        self.color = color
         self.is_running = False
         self.max_runs = 1
         self.runs = 0
-        self.color = color
     
     def run_animation(self):
         self.is_running = True

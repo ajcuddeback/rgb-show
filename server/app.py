@@ -1,11 +1,22 @@
+#!/usr/bin/env python3
+# Flask Server Entry Point
+# Author: Austin Cuddeback (ajcuddeback@gmail.com)
+#
+# Simple Flask Server to connect and run animations through a web application
+
 from flask import Flask, jsonify, send_from_directory, request
+from importlib import import_module
 import threading
 import board
 from neopixel_controller import NeoPixelController
 
 app = Flask(__name__)
 
-pixel_controller = NeoPixelController(num_pixels=100, pin=board.D18)
+# Change these variables according to your configuration
+PIN_NUMBER = board.D18
+NUM_PIXELS = 100
+
+pixel_controller = NeoPixelController(num_pixels=NUM_PIXELS, pin=PIN_NUMBER)
 
 animation_instance = None
 animation_thread = None
@@ -49,8 +60,15 @@ def start_animation(animation_name):
         return jsonify({'error': 'Invalid JSON data'}), 400
     
     # Import the animation class dynamically
-    animation_class = getattr(__import__(f'animations.{animation_name}', fromlist=['']), animation_name)
-    
+    # Specify the full module path
+    module_path = f'animations.{animation_name}'
+
+    # Import the module dynamically
+    animation_module = import_module(module_path)
+
+    # Get the animation class dynamically
+    animation_class = getattr(animation_module, animation_name)
+
     # Instantiate the animation class with the NeoPixelController
     animation_instance = animation_class(pixel_controller, color)
 
