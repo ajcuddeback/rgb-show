@@ -34,7 +34,6 @@ export class RgbControllerComponent {
 
   getColor(e: any) {
     const color = e.target.value;
-    console.log("ARSAL ADDED A LOG FOR COLOR")
     this.color = this.convertHexToRGB(color);
     // Reset current animation so the initiate method can be ran again...
     this.currentAnimation = '';
