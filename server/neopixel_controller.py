@@ -25,3 +25,4 @@ class NeoPixelController:
         print("CHANGING")
         self.brightness = brightness
         self.pixels.brightness = self.brightness
+        self.pixels.show()
