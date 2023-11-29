@@ -6,12 +6,12 @@
 # Mocks the looks of traditional colorful Xmas light strip
 
 import time
-from animations import AbstractAnimation
 
-class staticxmas(AbstractAnimation):
+class staticxmas:
     def __init__(self, neo_pixel_controller, color):
-        super().__init__(neo_pixel_controller, color)
-        print(f"staticxmas __init__: neo_pixel_controller={neo_pixel_controller}, color={color}")
+        self.controller = neo_pixel_controller
+        self.color = color
+        self.is_running = False
         self.max_runs = 1
         self.runs = 0
     

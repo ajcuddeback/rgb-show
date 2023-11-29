@@ -6,9 +6,13 @@
 # Displays a simple rainbow animation
 
 from adafruit_led_animation.animation.rainbow import Rainbow
-from animations import AbstractAnimation
 
-class rainbowanimation(AbstractAnimation):
+class rainbowanimation:
+    def __init__(self, neo_pixel_controller, color):
+        self.controller = neo_pixel_controller
+        self.color = color
+        self.is_running = False
+
     def run_animation(self):
         self.is_running = True
         rainbow = Rainbow(self.controller.pixels, speed=0.1, period=2)
