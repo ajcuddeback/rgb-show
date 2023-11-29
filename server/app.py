@@ -1,3 +1,9 @@
+#!/usr/bin/env python3
+# Flask Server Entry Point
+# Author: Austin Cuddeback (ajcuddeback@gmail.com)
+#
+# Simple Flask Server to connect and run animations through a web application
+
 from flask import Flask, jsonify, send_from_directory, request
 from importlib import import_module
 import threading
