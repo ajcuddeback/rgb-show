@@ -9,3 +9,9 @@ class rainbowanimation(AbstractAnimation):
             rainbow.animate()
             if not self.check_if_is_running():
                 break
+
+    def check_if_is_running(self):
+        return self.is_running
+    
+    def stop(self):
+        self.is_running = False

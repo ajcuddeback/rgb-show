@@ -15,14 +15,16 @@ class AbstractAnimation(ABC):
         """
         pass
 
+    @abstractmethod
     def check_if_is_running(self):
         """
         Method to check if the animation is still running.
         """
-        return self.is_running
+        pass
 
+    @abstractmethod
     def stop(self):
         """
         Method to stop the animation.
         """
-        self.is_running = False
+        pass

@@ -17,6 +17,12 @@ class staticxmas(AbstractAnimation):
             if not self.check_if_is_running():
                 break
 
+    def check_if_is_running(self):
+        return self.is_running
+    
+    def stop(self):
+        self.is_running = False
+
     def static_xmas_colors(self):
         colors = [(255,0,0), (0,255,0), (245,0,245), (255, 255, 0)]
         for i in range(self.controller.pixels.n):
