@@ -38,10 +38,8 @@ def start_animation(animation_name):
     global animation_instance
     global color
 
-    # Stop the current animation if it's running
-    print("stoppping...")
+    # Stop the current animation if it's running\
     stop_animation()
-    print("STOPED")
 
     if request.is_json:
         json_data = request.get_json()
@@ -51,7 +49,6 @@ def start_animation(animation_name):
             # Check if json_data['color'] is a list
             if isinstance(json_data['color'], list):
                 color = tuple(json_data['color'])
-                print(color)
             else:
                 return jsonify({'error': 'JSON data "color" must be an array'}), 400
         else:
@@ -63,16 +60,15 @@ def start_animation(animation_name):
     # Specify the full module path
     module_path = f'animations.{animation_name}'
 
-    print("GETTING MODUEL GOT THE PATH")
     # Import the module dynamically
     animation_module = import_module(module_path)
-    print("GOT MODULE GOING TO GET CLASS")
+    
     # Get the animation class dynamically
     animation_class = getattr(animation_module, animation_name)
-    print("ABout to create instance")
+
     # Instantiate the animation class with the NeoPixelController
     animation_instance = animation_class(pixel_controller, color)
-    print("Created insteance")
+
     # Start the animation in a new thread
     animation_thread = threading.Thread(target=run_animation_thread, args=(animation_instance,))
     animation_thread.start()
@@ -86,7 +82,6 @@ def change_brightness():
         json_data = request.get_json()
         
         if 'brightness' in json_data:
-            print(json_data['brightness'])
             pixel_controller.change_brightness(json_data['brightness'])
         else:
             return jsonify({'error': 'BRIGHTNESS is required!'}), 400
@@ -104,12 +99,10 @@ def stop_animation():
         animation_instance.stop()
         animation_instance = None
 
-    print("Going to wait for thread to die")
     # Wait for the animation thread to finish
     if animation_thread and animation_thread.is_alive():
         animation_thread.join()
 
-    print(f"thread died {animation_thread}")
     pixel_controller.turn_off_all_lights()
 
     return jsonify({'status': 'Animation stopped'})
