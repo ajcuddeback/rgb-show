@@ -1,6 +1,6 @@
 from adafruit_led_animation.animation.sparklepulse import SparklePulse
 from adafruit_led_animation.sequence import AnimationSequence
-from animations.AbstractAnimation import AbstractAnimation
+from animations import AbstractAnimation
 
 class sparkleanimation(AbstractAnimation):
     def run_animation(self):
