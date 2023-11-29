@@ -1,5 +1,5 @@
 import time
-from AbstractAnimation import AbstractAnimation
+from server.AbstractAnimation import AbstractAnimation
 
 class singlecolor(AbstractAnimation):
     def __init__(self, neo_pixel_controller, color):
