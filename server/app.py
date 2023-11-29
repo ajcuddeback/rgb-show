@@ -59,8 +59,12 @@ def start_animation(animation_name):
     # Get the animation class dynamically
     animation_class = getattr(animation_module, animation_name)
     
+    print("GONNA GEAT CLASS")
+
     # Instantiate the animation class with the NeoPixelController
     animation_instance = animation_class(pixel_controller, color)
+
+    print("CREATED")
 
     # Start the animation in a new thread
     animation_thread = threading.Thread(target=run_animation_thread, args=(animation_instance,))
