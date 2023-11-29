@@ -48,12 +48,12 @@ export class RgbControllerComponent {
   
 
   inititateAnimtion(animationName: string) {
-    if(animationName !== this.currentAnimation) {
+    // if(animationName !== this.currentAnimation) {
       this.currentAnimation = animationName;
       this.rgbApi.startAnimation(animationName, this.color).subscribe(response => {
         console.log("RESPONSE: ", response);
       })
-    }
+    // }
   }
 
   shutDown() {
