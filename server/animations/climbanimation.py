@@ -4,7 +4,9 @@ from animations import AbstractAnimation
 
 class climbanimation(AbstractAnimation):
     def __init__(self, neo_pixel_controller, color):
-        super().__init__(neo_pixel_controller, color)
+        self.controller = neo_pixel_controller
+        self.color = color
+        self.is_running = False
         self.axis = [[0, 29], [30, 49], [50, 64], [65, 74], [75, 84], [85, 94], [95, 99]]
         self.colors = [(255,20,217), (0,255,0), (255,0,0)]
         self.lock = threading.Lock()

@@ -3,7 +3,9 @@ from animations import AbstractAnimation
 
 class staticxmas(AbstractAnimation):
     def __init__(self, neo_pixel_controller, color):
-        super().__init__(neo_pixel_controller, color)
+        self.controller = neo_pixel_controller
+        self.color = color
+        self.is_running = False
         self.max_runs = 1
         self.runs = 0
     
