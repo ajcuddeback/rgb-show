@@ -9,7 +9,6 @@ from importlib import import_module
 import threading
 import board
 from neopixel_controller import NeoPixelController
-from animations import AbstractAnimation
 
 app = Flask(__name__)
 
@@ -64,17 +63,16 @@ def start_animation(animation_name):
     # Specify the full module path
     module_path = f'animations.{animation_name}'
 
+    print("GETTING MODUEL GOT THE PATH")
     # Import the module dynamically
     animation_module = import_module(module_path)
-
+    print("GOT MODULE GOING TO GET CLASS")
     # Get the animation class dynamically
     animation_class = getattr(animation_module, animation_name)
-
-    AbstractAnimation.register(animation_class)
-
+    print("ABout to create instance")
     # Instantiate the animation class with the NeoPixelController
     animation_instance = animation_class(pixel_controller, color)
-
+    print("Created insteance")
     # Start the animation in a new thread
     animation_thread = threading.Thread(target=run_animation_thread, args=(animation_instance,))
     animation_thread.start()
