@@ -6,7 +6,11 @@ from neopixel_controller import NeoPixelController
 
 app = Flask(__name__)
 
-pixel_controller = NeoPixelController(num_pixels=100, pin=board.D18)
+# Change these variables according to your configuration
+PIN_NUMBER = board.D18
+NUM_PIXELS = 100
+
+pixel_controller = NeoPixelController(num_pixels=NUM_PIXELS, pin=PIN_NUMBER)
 
 animation_instance = None
 animation_thread = None

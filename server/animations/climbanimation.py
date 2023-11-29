@@ -1,3 +1,10 @@
+#!/usr/bin/env python3
+# Simple Climb Animation for a Christmas Tree
+# Author: Austin Cuddeback (ajcuddeback@gmail.com)
+#
+# This animations highlights a set of lights based on the Axis variable
+# Currently hard coded to my tree
+
 import time
 import threading
 from animations import AbstractAnimation

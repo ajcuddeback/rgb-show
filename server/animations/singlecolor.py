@@ -1,3 +1,9 @@
+#!/usr/bin/env python3
+# Single Color Animation
+# Author: Austin Cuddeback (ajcuddeback@gmail.com)
+#
+# Simply lights all lights to the same color based on the color param
+
 import time
 from animations import AbstractAnimation
 

@@ -1,3 +1,10 @@
+#!/usr/bin/env python3
+# Simple Rainbow Animation
+# Author: Austin Cuddeback (ajcuddeback@gmail.com)
+#
+# Uses the Adafruit animation library
+# Displays a simple rainbow animation
+
 from adafruit_led_animation.animation.rainbow import Rainbow
 from animations import AbstractAnimation
 

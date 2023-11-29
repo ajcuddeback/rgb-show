@@ -1,3 +1,10 @@
+#!/usr/bin/env python3
+# Simple Sparkle Animation
+# Author: Austin Cuddeback (ajcuddeback@gmail.com)
+#
+# Uses the Adafruit animation library
+# Displays a simple sparkle animation based on the color passed from the params
+
 from adafruit_led_animation.animation.sparklepulse import SparklePulse
 from adafruit_led_animation.sequence import AnimationSequence
 from animations import AbstractAnimation

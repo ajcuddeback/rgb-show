@@ -1,3 +1,10 @@
+#!/usr/bin/env python3
+# NeoPixel Controller
+# Author: Austin Cuddeback (ajcuddeback@gmail.com)
+#
+# Singleton class that connects to NeoPixel Compatible lights
+# Uses the Adafruit NeoPixel Library
+
 import neopixel
 
 class NeoPixelController:

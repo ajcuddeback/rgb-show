@@ -1,3 +1,10 @@
+#!/usr/bin/env python3
+# Static Xmas Color Animation
+# Author: Austin Cuddeback (ajcuddeback@gmail.com)
+#
+# Colors all lights in a pattern of colors
+# Mocks the looks of traditional colorful Xmas light strip
+
 import time
 from animations import AbstractAnimation
 
