@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 class AbstractAnimation(ABC):
-    def __init__(self, neo_pixel_controller, color, *args, **kwargs):
+    def __init__(self, neo_pixel_controller, color):
         self.controller = neo_pixel_controller
         self.color = color
         self.is_running = False
@@ -13,6 +13,7 @@ class AbstractAnimation(ABC):
         Should contain a `while True` loop with the animation implementation in it.
         The while True loop needs to contain a if check_if_is_running conditional that should return from the loop
         """
+        pass
 
     def check_if_is_running(self):
         """
