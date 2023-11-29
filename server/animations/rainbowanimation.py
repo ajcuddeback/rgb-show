@@ -1,4 +1,3 @@
-import time
 from adafruit_led_animation.animation.rainbow import Rainbow
 
 class rainbowanimation:
