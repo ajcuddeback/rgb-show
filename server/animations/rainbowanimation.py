@@ -1,5 +1,5 @@
 from adafruit_led_animation.animation.rainbow import Rainbow
-import AbstractAnimation
+from animations.AbstractAnimation import AbstractAnimation
 
 class rainbowanimation(AbstractAnimation):
     def run_animation(self):
