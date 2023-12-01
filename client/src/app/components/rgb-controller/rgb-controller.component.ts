@@ -45,8 +45,8 @@ export class RgbControllerComponent {
   }
 
   convertBrightness(brightness: string) {
-    console.log("BR: ", parseInt(brightness))
-    return parseInt(brightness) * 100;
+    console.log("BR: ", parseFloat(brightness))
+    return parseFloat(brightness) * 100;
   }
 
   changeBrightnessLevel(e: number) {
