@@ -29,6 +29,7 @@ export class RgbControllerComponent {
       this.activeState = response;
       this.brightness = this.convertBrightness(this.activeState.brightness)
       this.hexColor = this.rgbToHex(this.activeState.color);
+      this.color = this.activeState.color;
       this.isLoading = false;
     })
   }
