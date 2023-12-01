@@ -12,6 +12,7 @@ import { ActivetState } from 'src/app/interfaces/activeState.interface';
 })
 export class RgbControllerComponent {
   public animations: Animations[] = animations;
+  hexColor: string = '';
   color: number[] = [0,0,0];
   currentAnimation: string = '';
   brightness: number = 0.1;
@@ -27,8 +28,8 @@ export class RgbControllerComponent {
     this.rgbService.getActiveState().subscribe((response: ActivetState) => {
       this.activeState = response;
       this.brightness = this.convertBrightness(this.activeState.brightness)
+      this.hexColor = this.rgbToHex(this.activeState.color);
       this.isLoading = false;
-
     })
   }
 

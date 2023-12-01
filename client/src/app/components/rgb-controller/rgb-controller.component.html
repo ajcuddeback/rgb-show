@@ -1,16 +1,14 @@
-<ng-container *ngIf="activeState">
-    <div class="brightness-adjuster">
-        <label for="range">Brightness Setting</label>
-        <input type="range" min="0" max="100" step="1" [value]="convertBrightness(activeState.brightness)" #brightnessInput>
-        <div>Current Value: {{this.brightness * 100}}</div>
+<div class="brightness-adjuster">
+    <label for="range">Brightness Setting</label>
+    <input type="range" min="0" max="100" step="1" [value]="brightness * 100"  #brightnessInput>
+    <div>Current Value: {{brightness * 100}}</div>
+</div>
+<div class="controller">
+    <ng-container *ngFor="let animation of animations">
+        <button [ngClass]="animation.name" (click)="inititateAnimtion(animation.name)">{{ animation.description }}</button>
+    </ng-container>
+    <div class="single-color-input">
+        <input type="color" [value]="color" (input)="getColor($event)">
     </div>
-    <div class="controller">
-        <ng-container *ngFor="let animation of animations">
-            <button [ngClass]="animation.name" (click)="inititateAnimtion(animation.name)">{{ animation.description }}</button>
-        </ng-container>
-        <div class="single-color-input">
-            <input type="color" [value]="rgbToHex(activeState.color)" (input)="getColor($event)">
-        </div>
-        <button class="clear" (click)="shutDown()">Click to stop animation!</button>
-    </div>
-</ng-container>
+    <button class="clear" (click)="shutDown()">Click to stop animation!</button>
+</div>
