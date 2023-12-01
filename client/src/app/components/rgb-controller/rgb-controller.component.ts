@@ -15,7 +15,7 @@ export class RgbControllerComponent {
   hexColor: string = '';
   color: number[] = [0,0,0];
   currentAnimation: string = '';
-  brightness: number = 0.1;
+  brightness: number = 10;
   activeState: ActivetState;
   isLoading: boolean = true;
 
@@ -48,8 +48,7 @@ export class RgbControllerComponent {
   }
 
   changeBrightnessLevel(e: number) {
-    this.brightness = e / 100;
-    this.rgbService.changeBrightness(this.brightness).subscribe(_ => {})
+    this.rgbService.changeBrightness( e / 100).subscribe(_ => {})
   }
 
   getColor(e: any) {
