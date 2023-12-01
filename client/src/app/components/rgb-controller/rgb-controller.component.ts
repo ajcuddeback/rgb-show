@@ -28,6 +28,7 @@ export class RgbControllerComponent {
     this.rgbService.getActiveState().subscribe((response: ActivetState) => {
       this.activeState = response;
       this.brightness = this.convertBrightness(this.activeState.brightness)
+      console.log("BRIGHTNESS: ", this.brightness)
       this.hexColor = this.rgbToHex(this.activeState.color);
       this.isLoading = false;
     })
