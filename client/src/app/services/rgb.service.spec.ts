@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
-import { RgbApiService } from './rgb-api.service';
+import { RgbService } from './rgb.service';
 
-describe('RgbApiService', () => {
-  let service: RgbApiService;
+describe('RgbService', () => {
+  let service: RgbService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(RgbApiService);
+    service = TestBed.inject(RgbService);
   });
 
   it('should be created', () => {
