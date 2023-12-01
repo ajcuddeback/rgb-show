@@ -26,18 +26,19 @@ export class RgbControllerComponent {
     this.isLoading = true;
     this.rgbService.getActiveState().subscribe((response: ActivetState) => {
       this.activeState = response;
+      this.brightness = this.convertBrightness(this.activeState.brightness);
       this.isLoading = false;
+      this.setUpBrightnessEventListener();
     })
   }
 
-  ngAfterViewInit(): void {
-      fromEvent(this.brightnessInput.nativeElement, 'input').pipe(
-        debounceTime(100)
-      ).subscribe(event => {
-        const element = event.target as HTMLInputElement;
-        this.changeBrightnessLevel(parseInt(element.value));
-      })
-    
+  setUpBrightnessEventListener(): void {
+    fromEvent(this.brightnessInput.nativeElement, 'input').pipe(
+      debounceTime(100)
+    ).subscribe(event => {
+      const element = event.target as HTMLInputElement;
+      this.changeBrightnessLevel(parseInt(element.value));
+    })
   }
 
   convertBrightness(brightness: string) {
