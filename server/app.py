@@ -96,13 +96,6 @@ def change_brightness():
 def get_brightness():
   global current_color
   return jsonify({ 'brightness': f'{pixel_controller.brightness}', 'animation': current_animation_name, 'color': current_color  }), 200
-
-@app.route('/get_current_animation')
-def get_current_animation():
-    return jsonify({ 'animation': current_animation_name })
-
-@app.route('get_current_color')
-    
     
 @app.route('/stop_animation', methods=['POST'])
 def stop_animation():
