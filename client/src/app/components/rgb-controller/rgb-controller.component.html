@@ -1,17 +1,16 @@
-<div class="brightness-adjuster">
-    <label for="range">Brightness Setting</label>
-    <input type="range" min="0" max="100" value="10" #brightnessInput>
-    <div>Current Value: {{this.brightness * 100}}</div>
-</div>
-<div class="controller">
-    <button class="fillup" (click)="inititateAnimtion('climbanimation')">Click to begin Fillup!</button>
-    <button class="staticxmas" (click)="inititateAnimtion('staticxmas')">Click to begin static xmas!</button>
-    <button class="rainbow" (click)="inititateAnimtion('rainbowanimation')">Click to begin Rainbow!</button>
-    <button class="sparkle" (click)="inititateAnimtion('sparkleanimation')">Click to begin Sparkle!</button>
-    <div class="single-color-input">
-        <button class="singlecolor" (click)="inititateAnimtion('singlecolor')">Click to begin a Single Color!</button>
-        <input type="color" (input)="getColor($event)">
+<ng-container *ngIf="!isLoading">
+    <div class="brightness-adjuster">
+        <label for="range">Brightness Setting</label>
+        <input type="range" min="0" max="100" step="1" [value]="convertBrightness(activeState.brightness)" #brightnessInput>
+        <div>Current Value: {{this.brightness * 100}}</div>
     </div>
-    <button class="clear" (click)="shutDown()">Click to stop animation!</button>
-</div>
-
+    <div class="controller">
+        <ng-container *ngFor="let animation of animations">
+            <button [ngClass]="animation.name" (click)="inititateAnimtion(animation.name)">{{ animation.description }}</button>
+        </ng-container>
+        <div class="single-color-input">
+            <input type="color" [value]="rgbToHex(activeState.color)" (input)="getColor($event)">
+        </div>
+        <button class="clear" (click)="shutDown()">Click to stop animation!</button>
+    </div>
+</ng-container>

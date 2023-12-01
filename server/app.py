@@ -20,6 +20,8 @@ pixel_controller = NeoPixelController(num_pixels=NUM_PIXELS, pin=PIN_NUMBER)
 
 animation_instance = None
 animation_thread = None
+current_animation_name = ''
+current_color = (0,0,0)
 
 def run_animation_thread(animation_module):
     animation_module.run_animation()
@@ -34,9 +36,7 @@ def root():
 
 @app.route('/start_animation/<animation_name>', methods=['POST'])
 def start_animation(animation_name):
-    global animation_thread
-    global animation_instance
-    global color
+    global animation_thread, animation_instance, current_animation_name, color, current_color
 
     # Stop the current animation if it's running\
     stop_animation()
@@ -72,8 +72,10 @@ def start_animation(animation_name):
     # Start the animation in a new thread
     animation_thread = threading.Thread(target=run_animation_thread, args=(animation_instance,))
     animation_thread.start()
+    current_animation_name = animation_name
+    current_color = color
 
-    return jsonify({'status': f'{animation_name} started'})
+    return jsonify({'status': f'{animation_name} started'}), 200
 
 
 @app.route('/change_brightness', methods=['POST'])
@@ -88,11 +90,23 @@ def change_brightness():
     else:
         return jsonify({'error': 'Invalid JSON data'}), 400
     
-    return jsonify({'statue': 'Brightness changed!'})
+    return jsonify({'status': 'Brightness changed!'}), 200
+
+@app.route('/get_active_state')
+def get_brightness():
+  global current_color
+  return jsonify({ 'brightness': f'{pixel_controller.brightness}', 'animation': current_animation_name, 'color': current_color  }), 200
+
+@app.route('/get_current_animation')
+def get_current_animation():
+    return jsonify({ 'animation': current_animation_name })
+
+@app.route('get_current_color')
+    
     
 @app.route('/stop_animation', methods=['POST'])
 def stop_animation():
-    global animation_instance, animation_thread
+    global animation_instance, animation_thread, current_animation_name
 
     # Stop the current animation if it's running
     if animation_instance:
@@ -103,9 +117,11 @@ def stop_animation():
     if animation_thread and animation_thread.is_alive():
         animation_thread.join()
 
+    current_animation_name = ''
+
     pixel_controller.turn_off_all_lights()
 
-    return jsonify({'status': 'Animation stopped'})
+    return jsonify({'status': 'Animation stopped'}), 200
 
 if __name__ == '__main__':
   # Run server

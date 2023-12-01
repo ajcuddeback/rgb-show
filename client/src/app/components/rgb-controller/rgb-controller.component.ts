@@ -1,6 +1,9 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { debounceTime, fromEvent } from 'rxjs';
-import { RgbApiService } from 'src/app/services/rgb-api.service';
+import { Animations } from 'src/app/interfaces/animations.interface';
+import { RgbService } from 'src/app/services/rgb.service';
+import { animations } from './animations';
+import { ActivetState } from 'src/app/interfaces/activeState.interface';
 
 @Component({
   selector: 'app-rgb-controller',
@@ -8,14 +11,24 @@ import { RgbApiService } from 'src/app/services/rgb-api.service';
   styleUrls: ['./rgb-controller.component.scss']
 })
 export class RgbControllerComponent {
-
+  public animations: Animations[] = animations;
   color: number[] = [0,0,0];
   currentAnimation: string = '';
   brightness: number = 0.1;
+  activeState: ActivetState;
+  isLoading: boolean = true;
 
   @ViewChild('brightnessInput') brightnessInput: ElementRef<HTMLInputElement>;
 
-  constructor(private rgbApi: RgbApiService) { }
+  constructor(private rgbService: RgbService) { }
+
+  ngOnInit(): void {
+    this.isLoading = true;
+    this.rgbService.getActiveState().subscribe((response: ActivetState) => {
+      this.activeState = response;
+      this.isLoading = false;
+    })
+  }
 
   ngAfterViewInit(): void {
       fromEvent(this.brightnessInput.nativeElement, 'input').pipe(
@@ -27,9 +40,13 @@ export class RgbControllerComponent {
     
   }
 
+  convertBrightness(brightness: string) {
+    return parseInt(brightness) * 100;
+  }
+
   changeBrightnessLevel(e: number) {
     this.brightness = e / 100;
-    this.rgbApi.changeBrightness(this.brightness).subscribe(_ => {})
+    this.rgbService.changeBrightness(this.brightness).subscribe(_ => {})
   }
 
   getColor(e: any) {
@@ -45,19 +62,21 @@ export class RgbControllerComponent {
     const b = parseInt(value.substr(5,2), 16)
     return [r, g, b];
   }
+
+  rgbToHex(rgb: number[]) {
+    return "#" + ((1 << 24) + (rgb[0] << 16) + (rgb[1] << 8) + rgb[2]).toString(16).slice(1);
+  }
   
 
   inititateAnimtion(animationName: string) {
-    // if(animationName !== this.currentAnimation) {
-      this.currentAnimation = animationName;
-      this.rgbApi.startAnimation(animationName, this.color).subscribe(response => {
-        console.log("RESPONSE: ", response);
-      })
-    // }
+    this.currentAnimation = animationName;
+    this.rgbService.startAnimation(animationName, this.color).subscribe(response => {
+      console.log("RESPONSE: ", response);
+    })
   }
 
   shutDown() {
-    this.rgbApi.shutDown().subscribe(response => {
+    this.rgbService.shutDown().subscribe(response => {
       console.log("RESPONSE: ", response)
     })
   }
