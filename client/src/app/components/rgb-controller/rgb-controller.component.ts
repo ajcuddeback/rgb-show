@@ -18,6 +18,7 @@ export class RgbControllerComponent {
   brightness: number = 10;
   activeState: ActivetState;
   isLoading: boolean = true;
+  isOn: boolean = false;
 
   @ViewChild('brightnessInput') brightnessInput: ElementRef<HTMLInputElement>;
 
@@ -30,6 +31,10 @@ export class RgbControllerComponent {
       this.brightness = this.convertBrightness(this.activeState.brightness)
       this.hexColor = this.rgbToHex(this.activeState.color);
       this.color = this.activeState.color;
+      this.currentAnimation = this.activeState.animation;
+      if(this.activeState.animation) {
+        this.isOn = true;
+      }
       this.isLoading = false;
     })
   }
@@ -74,8 +79,19 @@ export class RgbControllerComponent {
   inititateAnimtion(animationName: string) {
     this.currentAnimation = animationName;
     this.rgbService.startAnimation(animationName, this.color).subscribe(response => {
+      if(!this.isOn) {
+        this.isOn = true;
+      }
       console.log("RESPONSE: ", response);
     })
+  }
+
+  toggleOnOff(event: any): void {
+    if(event.target.checked) {
+      this.inititateAnimtion(this.currentAnimation);
+    } else {
+      this.shutDown();
+    }
   }
 
   shutDown() {

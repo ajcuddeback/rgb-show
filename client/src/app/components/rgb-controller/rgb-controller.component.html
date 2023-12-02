@@ -1,11 +1,15 @@
 <div class="controls">
     <div class="brightness-adjuster">
-        <label for="range">Brightness Setting</label>
+        <label for="range">Brightness {{ brightness }}%</label>
         <input type="range" min="0" max="100" step="1" [(ngModel)]="brightness"  #brightnessInput>
-        <p>Current Value: {{brightness}}</p>
     </div>
 
-    <button class="clear" (click)="shutDown()">Turn off lights!</button>
+    <label class="switch">
+        <input (click)="toggleOnOff($event)" [(ngModel)]="isOn" type="checkbox">
+        <span class="slider round" [ngClass]="isOn ? 'on' : ''">
+            {{ isOn ? 'On' : 'Off' }}
+        </span>
+    </label>
 
 </div>
 
