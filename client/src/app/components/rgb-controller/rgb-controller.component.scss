@@ -1,15 +1,31 @@
-.controller {
+.animations-buttons {
     display: grid;
-    grid-template-columns: auto auto auto;
+    grid-template-columns: 1fr 1fr 1fr;
     column-gap: 50px;
     row-gap: 50px;
     justify-items: center;
     align-items: center;
 }
 
+.controls {
+    display: flex;
+    justify-content: space-between;
+}
+
+.animations-buttons {
+    margin-top: 1rem;
+    border: 1px solid black;
+    box-shadow: inset 0 0 10px grey;
+    border-radius: 1rem;
+    padding: 1rem;
+}
+
+h2, label, p, button {
+    color: white;
+}
+
 button {
     background-color: #c60e0f;
-    color: white;
     border: none;
     width: 10rem;
     height: 2rem;
@@ -17,8 +33,8 @@ button {
     cursor: pointer;
 }
 
-@media screen and (max-width: 600px) {
-    .controller {
+@media screen and (max-width: 700px) {
+    .animations-buttons {
         grid-template-columns: auto auto;
         row-gap: 50px;
         justify-items: center;
@@ -26,8 +42,8 @@ button {
     }
 }
 
-@media screen and (max-width: 420px) {
-    .controller {
+@media screen and (max-width: 470px) {
+    .animations-buttons {
         grid-template-columns: auto;
         row-gap: 50px;
         justify-items: center;
