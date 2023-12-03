@@ -7,6 +7,7 @@ sudo pip3 install flask
 
 # Navigate to the client directory and install npm packages
 cd client
+sudo npm install -g @angular/cli
 sudo npm i
 
 # Build the Angular project
