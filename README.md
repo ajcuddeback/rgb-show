@@ -5,10 +5,9 @@ This application allows you to control RGB Neo Pixels using an Angular front-end
 ## Prerequisites
 
 - Microcontroller or Raspberry Pi with GPIO pins
-- Neo Pixels
-- Python 3.x
-- Node.js and npm
-- Angular CLI
+- Neo Pixels Lights (For this app I am using WS2811, but any neopixel lights are compatible)
+- Install Python 3.x on Pi
+- Install Node.js and npm on Pi
 
 ## Getting Started
 
