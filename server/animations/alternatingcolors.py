@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-# Simple Climb Animation for a Christmas Tree
+# Alternating Color Animation
 # Author: Austin Cuddeback (ajcuddeback@gmail.com)
 #
-# This animations highlights a set of lights based on the Axis variable
-# Currently hard coded to my tree
+# This animation will alternate through the array of colors for each LED
 
 import time
 import threading
@@ -12,7 +11,6 @@ from .AbstractAnimation import  AbstractAnimation
 class alternatingcolors(AbstractAnimation):
     def __init__(self, neo_pixel_controller, color):
         super().__init__(neo_pixel_controller, color)
-        self.axis = [[0, 29], [30, 49], [50, 64], [65, 74], [75, 84], [85, 94], [95, 99]]
         self.colors = [(255,0,0), (0,255,0)]
         self.speed = 1
         self.lock = threading.Lock()
