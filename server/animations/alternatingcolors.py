@@ -42,7 +42,7 @@ class alternatingcolors(AbstractAnimation):
                 print(f'Addition working??: {j + offset}')
                 print(f'RESULT? : {j % len(self.colors)}')
                 print(f'color_index {color_index}')
-                self.controller.pixels[i] = self.colors[color_index]
+                self.controller.pixels[j] = self.colors[color_index]
                 if not self.check_if_is_running():
                     return
             self.controller.pixels.show()
