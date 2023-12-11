@@ -32,15 +32,18 @@ class alternatingcolors(AbstractAnimation):
         for i in range(len(self.colors)):
             if not self.check_if_is_running():
                     return
+            print(f'length {len(self.colors) - 1}')
             if(offset > len(self.colors) - 1):
+                print('reseting')
                 offset = 0
             for j in range(self.controller.pixels.n):
-                print(f'J: {offset}')
+                print(f'offset: {offset}')
                 color_index = j + offset % len(self.colors)
-                print(color_index)
+                print(f'color_index {color_index}')
                 self.controller.pixels[i] = self.colors[color_index]
                 if not self.check_if_is_running():
                     return
             self.controller.pixels.show()
             offset += 1
+            print(f'offset now: {offset}')
             time.sleep(self.speed)
