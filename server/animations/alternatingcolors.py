@@ -32,7 +32,9 @@ class alternatingcolors(AbstractAnimation):
             if not self.check_if_is_running():
                     return
             for j in range(self.controller.pixels.n):
+                print(f'J: {j}')
                 color_index = j + i % len(self.colors)
+                print(color_index)
                 self.controller.pixels[i] = self.colors[color_index]
                 if not self.check_if_is_running():
                     return
