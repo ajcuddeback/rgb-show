@@ -14,7 +14,7 @@ class alternatingcolors(AbstractAnimation):
         super().__init__(neo_pixel_controller, color)
         self.axis = [[0, 29], [30, 49], [50, 64], [65, 74], [75, 84], [85, 94], [95, 99]]
         self.colors = [(255,0,0), (0,255,0)]
-        self.speed = 0.3
+        self.speed = 1
         self.lock = threading.Lock()
     
     def run_animation(self):
