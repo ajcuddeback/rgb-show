@@ -37,7 +37,7 @@ class alternatingcolors(AbstractAnimation):
                 print('reseting')
                 offset = 0
             for j in range(self.controller.pixels.n):
-                print(f'offset: {offset}')
+                print(f'offset: {offset} len: {len(self.colors)} j: {j}')
                 color_index = j + offset % len(self.colors)
                 print(f'color_index {color_index}')
                 self.controller.pixels[i] = self.colors[color_index]
