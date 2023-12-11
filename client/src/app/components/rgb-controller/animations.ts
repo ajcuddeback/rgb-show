@@ -5,5 +5,6 @@ export const animations: Animations[] = [
     { name: 'rainbowanimation', description: 'Rainbow Animation', hasColorPicker: false },
     { name: 'singlecolor', description: 'Single Color', hasColorPicker: true },
     { name: 'sparkleanimation', description: 'Sparkle Animation', hasColorPicker: true },
-    { name: 'staticxmas', description: 'Static Christmas Colors', hasColorPicker: false }
+    { name: 'staticxmas', description: 'Static Christmas Colors', hasColorPicker: false },
+    { name: 'alternatingcolors', description: 'Alternating Christmas Colors', hasColorPicker: false }
 ]
