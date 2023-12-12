@@ -7,12 +7,12 @@
 
 from adafruit_led_animation.animation.sparklepulse import SparklePulse
 from adafruit_led_animation.sequence import AnimationSequence
-from .AbstractAnimation import  AbstractAnimation
+from .SingleColorAbstractAnimation import SingleColorAbstractAnimation
 
-class sparkleanimation(AbstractAnimation):
+class sparkleanimation(SingleColorAbstractAnimation):
     def run_animation(self):
         self.is_running = True
-        sparkle_pulse = SparklePulse(self.controller.pixels, speed=0.1, period=3, color=self.color)
+        sparkle_pulse = SparklePulse(self.controller.pixels, speed=self.speed, period=3, color=self.color)
 
         animations = AnimationSequence(
             sparkle_pulse,

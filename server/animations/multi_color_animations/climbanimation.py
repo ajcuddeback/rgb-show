@@ -7,13 +7,12 @@
 
 import time
 import threading
-from .AbstractAnimation import  AbstractAnimation
+from .MultiColorAbstractAnimation import  MultiColorAbstractAnimation
 
-class climbanimation(AbstractAnimation):
-    def __init__(self, neo_pixel_controller, color):
-        super().__init__(neo_pixel_controller, color)
+class climbanimation(MultiColorAbstractAnimation):
+    def __init__(self, neo_pixel_controller, colors, speed):
+        super().__init__(neo_pixel_controller, colors, speed)
         self.axis = [[0, 29], [30, 49], [50, 64], [65, 74], [75, 84], [85, 94], [95, 99]]
-        self.colors = [(255,20,217), (0,255,0), (255,0,0)]
         self.lock = threading.Lock()
     
     def run_animation(self):
@@ -35,7 +34,7 @@ class climbanimation(AbstractAnimation):
             if not self.check_if_is_running():
                 return
             self.controller.pixels.show()
-            time.sleep(0.3)
+            time.sleep(self.speed)
 
     def fillup(self):
         for color in self.colors:
@@ -43,4 +42,4 @@ class climbanimation(AbstractAnimation):
             with self.lock:
                 if not self.check_if_is_running():
                     return
-        time.sleep(0.3)
+        time.sleep(self.speed)

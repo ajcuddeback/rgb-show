@@ -6,12 +6,12 @@
 # Displays a simple rainbow animation
 
 from adafruit_led_animation.animation.rainbow import Rainbow
-from .AbstractAnimation import  AbstractAnimation
+from .StaticAbstractAnimation import StaticAbstractAnimation
 
-class rainbowanimation(AbstractAnimation):
+class rainbowanimation(StaticAbstractAnimation):
     def run_animation(self):
         self.is_running = True
-        rainbow = Rainbow(self.controller.pixels, speed=0.1, period=2)
+        rainbow = Rainbow(self.controller.pixels, speed=self.speed, period=2)
         while True:
             rainbow.animate()
             if not self.check_if_is_running():

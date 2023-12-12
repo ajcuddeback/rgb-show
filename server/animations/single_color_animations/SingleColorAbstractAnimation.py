@@ -1,9 +1,10 @@
 from abc import ABC, abstractmethod
 
 class AbstractAnimation(ABC):
-    def __init__(self, neo_pixel_controller, color):
+    def __init__(self, neo_pixel_controller, color, speed):
         self.controller = neo_pixel_controller
         self.color = color
+        self.speed = speed
         self.is_running = False
 
     @abstractmethod
