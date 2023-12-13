@@ -49,6 +49,8 @@ export class MultiColorAnimationsComponent {
       rgbColors.push(rgbColor);
     });
 
-    this.rgbService.startMultiColorAnimation(animationName, rgbColors);
+    this.rgbService.startMultiColorAnimation(animationName, rgbColors).subscribe(response => {
+      console.log("RESPONSE: ", response);
+    });
   }
 }
