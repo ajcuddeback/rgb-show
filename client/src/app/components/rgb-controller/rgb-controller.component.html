@@ -1,41 +1,17 @@
-<div class="controls">
-    <div class="brightness-adjuster">
-        <label for="range">Brightness {{ brightness }}%</label>
-        <input type="range" min="0" max="100" step="1" [(ngModel)]="brightness"  #brightnessInput>
-    </div>
-
-    <label class="switch">
-        <input (click)="toggleOnOff($event)" [(ngModel)]="isOn" type="checkbox">
-        <span class="slider round" [ngClass]="isOn ? 'on' : ''">
-            {{ isOn ? 'On' : 'Off' }}
-        </span>
-    </label>
-
-</div>
-
-<div class="section animations">
-    <h2>Animations</h2>
-    <div class="animations-buttons">
-        <ng-container *ngFor="let animation of animations">
-            <ng-container *ngIf="!animation.hasColorPicker">
-                <button [ngClass]="animation.name" (click)="inititateAnimtion(animation.name)">{{ animation.description }}</button>
-            </ng-container>
-        </ng-container>
-    </div>
-</div>
-
-<div class="section static-colors">
-    <div class="header">
-        <h2>Colored</h2>
-        <div class="single-color-input">
-            <input type="color" [(ngModel)]="hexColor" (input)="getColor($event)">
+@if(isLoading) {
+    <div class="controls">
+        <div class="brightness-adjuster">
+            <label for="range">Brightness {{ brightness }}%</label>
+            <input type="range" min="0" max="100" step="1" [(ngModel)]="brightness"  #brightnessInput>
         </div>
+
+        <label class="switch">
+            <input (click)="toggleOnOff($event)" [(ngModel)]="isOn" type="checkbox">
+            <span class="slider round" [ngClass]="isOn ? 'on' : ''">
+                {{ isOn ? 'On' : 'Off' }}
+            </span>
+        </label>
     </div>
-    <div class="animations-buttons">
-        <ng-container *ngFor="let animation of animations">
-            <ng-container *ngIf="animation.hasColorPicker">
-                <button [ngClass]="animation.name" (click)="inititateAnimtion(animation.name)">{{ animation.description }}</button>
-            </ng-container>
-        </ng-container>
-    </div>
-</div>
+
+    <app-multi-color-animations [defaultColors]="colors" />
+}
