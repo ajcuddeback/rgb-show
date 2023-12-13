@@ -37,7 +37,7 @@ def static_proxy(path):
 def root():
   return send_from_directory('../templates', 'index.html')
 
-@app.route('/start_multi_color/<animation_name>', methods=['POST'])
+@app.route('/start_multi_color_animation/<animation_name>', methods=['POST'])
 def start_multi_color(animation_name):
     global animation_thread, animation_instance, current_animation_name, current_colors, params
 

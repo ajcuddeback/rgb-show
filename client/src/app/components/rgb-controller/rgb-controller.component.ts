@@ -21,7 +21,6 @@ export class RgbControllerComponent {
   constructor(private rgbService: RgbService) { }
 
   ngOnInit(): void {
-    this.isLoading = true;
     this.rgbService.getActiveState().subscribe((response: ActivetState) => {
       this.activeState = response;
       this.brightness = this.convertBrightness(this.activeState.brightness);
