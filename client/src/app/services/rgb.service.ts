@@ -30,6 +30,10 @@ export class RgbService {
     return this.http.post<any>('/stop_animation', {});
   }
 
+  resumeAnimation(): Observable<any> {
+    return this.http.post<any>('/resume_animation', {});
+  }
+
   getActiveState(): Observable<ActivetState> {
     return this.http.get<ActivetState>('/get_active_state');
   }
