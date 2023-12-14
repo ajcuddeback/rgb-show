@@ -1,4 +1,4 @@
-@if(!isLoading) {
+
     <div class="controls">
         <div class="brightness-adjuster">
             <label for="range">Brightness {{ brightness }}%</label>
@@ -13,5 +13,8 @@
         </label>
     </div>
 
+@if(!isLoading) {
     <app-multi-color-animations [defaultColors]="colors" />
+} @else {
+    Loading...
 }

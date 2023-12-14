@@ -3,7 +3,6 @@ import { multiColorAnimations } from '../rgb-controller/animations';
 import { Animations } from 'src/app/interfaces/animations.interface';
 import { RgbService } from 'src/app/services/rgb.service';
 
-
 @Component({
   selector: 'app-multi-color-animations',
   templateUrl: './multi-color-animations.component.html',
@@ -41,8 +40,6 @@ export class MultiColorAnimationsComponent {
   }
 
   inititateAnimtion(animationName: string): void {
-    console.log("COLORS: ", this.colors)
-    console.log("ANIMATION NAME: ", animationName)
     const rgbColors: number[][] = [];
     this.colors.forEach(color => {
       const rgbColor = this.rgbService.convertHexToRGB(color);
