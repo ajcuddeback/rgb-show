@@ -1,1 +1,11 @@
-<p>static-animations works!</p>
+<div class="section">
+    <div class="header">
+        <h2>Static Animations</h2>
+        <p>The finest pre-built animations!</p>
+    </div>
+    <div class="animations-buttons">
+        @for (animation of animations; track $index) {
+            <button class="animation-button" (click)="inititateAnimtion(animation.name)">{{ animation.description }}</button>
+        }
+    </div>
+</div>

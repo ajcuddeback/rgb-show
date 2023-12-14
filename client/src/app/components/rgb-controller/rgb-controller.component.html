@@ -22,7 +22,9 @@
 </div>
 
 @if(!isLoading) {
+    <app-static-animations />
     <app-multi-color-animations [defaultColors]="colors" />
+    <app-single-color-animations />
 } @else {
     Loading...
 }
