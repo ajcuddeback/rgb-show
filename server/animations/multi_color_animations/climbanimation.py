@@ -20,8 +20,10 @@ class climbanimation(MultiColorAbstractAnimation):
             self.is_running = True
         while True:
             self.fillup()
+            print("FILLING")
             with self.lock:
                 if not self.check_if_is_running():
+                    print("NOT RUNNING")
                     return
 
     def climb(self, color):
@@ -30,16 +32,20 @@ class climbanimation(MultiColorAbstractAnimation):
                 self.controller.pixels[j] = color
                 with self.lock:
                     if not self.check_if_is_running():
+                        print("NOT RUNNING")
                         return
             if not self.check_if_is_running():
+                print("NOT RUNNINT")
                 return
             self.controller.pixels.show()
             time.sleep(self.speed)
 
     def fillup(self):
         for color in self.colors:
+            print("FILLING YEAh")
             self.climb(color)
             with self.lock:
                 if not self.check_if_is_running():
+                    print("NOT RUNNINT")
                     return
         time.sleep(self.speed)

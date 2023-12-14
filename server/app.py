@@ -41,7 +41,7 @@ def root():
 def start_multi_color(animation_name):
     global animation_thread, animation_instance, current_animation_name, current_colors, params
 
-    # Stop the current animation if it's running\
+    # Stop the current animation if it's running
     stop_animation()
 
     if request.is_json:
@@ -179,18 +179,26 @@ def get_brightness():
     
 @app.route('/stop_animation', methods=['POST'])
 def stop_animation():
-    global animation_instance, animation_thread, current_animation_name
+    global animation_instance, animation_thread
+
+    print("stopping!")
 
     # Stop the current animation if it's running
     if animation_instance:
         animation_instance.stop()
         animation_instance = None
 
+    print("CALLED THE STOP METHOD")
+
     # Wait for the animation thread to finish
     if animation_thread and animation_thread.is_alive():
         animation_thread.join()
+    
+    print("FINISHED JOING")
 
     pixel_controller.turn_off_all_lights()
+
+    print("FINISHED TURNING OFF")
 
     return jsonify({'status': 'Animation stopped'}), 200
 
