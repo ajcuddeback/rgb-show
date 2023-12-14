@@ -1,17 +1,25 @@
 
-    <div class="controls">
+<div class="controls">
+    <div class="adjusters">
         <div class="brightness-adjuster">
             <label for="range">Brightness {{ brightness }}%</label>
             <input type="range" min="0" max="100" step="1" [(ngModel)]="brightness"  #brightnessInput>
         </div>
-
-        <label class="switch">
-            <input (click)="toggleOnOff($event)" [(ngModel)]="isOn" type="checkbox">
-            <span class="slider round" [ngClass]="isOn ? 'on' : ''">
-                {{ isOn ? 'On' : 'Off' }}
-            </span>
-        </label>
+    
+        <div class="speed-adjuster">
+            <label for="range">Speed {{ speed }}ms</label>
+            <input type="range" min="200" max="5000" step="50" (input)="changeSpeed($event)" #brightnessInput>
+        </div>
     </div>
+    
+
+    <label class="switch">
+        <input (click)="toggleOnOff($event)" [(ngModel)]="isOn" type="checkbox">
+        <span class="slider round" [ngClass]="isOn ? 'on' : ''">
+            {{ isOn ? 'On' : 'Off' }}
+        </span>
+    </label>
+</div>
 
 @if(!isLoading) {
     <app-multi-color-animations [defaultColors]="colors" />

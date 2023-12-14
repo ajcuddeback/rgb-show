@@ -181,26 +181,16 @@ def get_brightness():
 def stop_animation():
     global animation_instance, animation_thread
 
-    print(f"stopping! {animation_instance}")
-
     # Stop the current animation if it's running
     if animation_instance:
         animation_instance.stop()
-        print(f"CALLED THE STOP METHOD {animation_instance.is_running}")
-        print(f"IN: {animation_instance}")
         animation_instance = None
-
-    print("FINISHED stop")
 
     # Wait for the animation thread to finish
     if animation_thread and animation_thread.is_alive():
         animation_thread.join()
-    
-    print("FINISHED JOING")
 
     pixel_controller.turn_off_all_lights()
-
-    print("FINISHED TURNING OFF")
 
     return jsonify({'status': 'Animation stopped'}), 200
 
@@ -223,7 +213,6 @@ def import_and_start_animation(module_path, animation_name, params):
 
     # Instantiate the animation class with the NeoPixelController
     animation_instance = animation_class(pixel_controller, **params)
-    print("INSTANCE DONE")
 
     # Start the animation in a new thread
     animation_thread = threading.Thread(target=run_animation_thread, args=(animation_instance,))

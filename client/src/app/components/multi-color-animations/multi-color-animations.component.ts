@@ -6,7 +6,7 @@ import { RgbService } from 'src/app/services/rgb.service';
 @Component({
   selector: 'app-multi-color-animations',
   templateUrl: './multi-color-animations.component.html',
-  styleUrl: './multi-color-animations.component.scss'
+  styleUrls: ['./multi-color-animations.component.scss', '../shared-styles.scss']
 })
 export class MultiColorAnimationsComponent {
   public animations: Animations[] = multiColorAnimations;

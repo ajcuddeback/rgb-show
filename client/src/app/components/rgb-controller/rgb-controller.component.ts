@@ -6,15 +6,16 @@ import { ActivetState } from 'src/app/interfaces/activeState.interface';
 @Component({
   selector: 'app-rgb-controller',
   templateUrl: './rgb-controller.component.html',
-  styleUrls: ['./rgb-controller.component.scss']
+  styleUrls: ['./rgb-controller.component.scss', '../shared-styles.scss']
 })
 export class RgbControllerComponent {
   brightness: number = 10;
   activeState: ActivetState;
-  isLoading: boolean = true;
+  isLoading: boolean = false;
   isOn: boolean = false;
   colors: number[][];
   color: number[];
+  speed: number;
 
   @ViewChild('brightnessInput') brightnessInput: ElementRef<HTMLInputElement>;
 
@@ -35,6 +36,8 @@ export class RgbControllerComponent {
     this.rgbService.isOn.subscribe(isOn => {
       this.isOn = isOn;
     });
+
+    this.speed = this.rgbService.speed;
   }
 
   ngAfterViewInit(): void {
@@ -52,6 +55,11 @@ export class RgbControllerComponent {
 
   changeBrightnessLevel(e: number) {
     this.rgbService.changeBrightness( e / 100).subscribe(_ => {})
+  }
+
+  changeSpeed(e: any) {
+    this.rgbService.speed = e.target.value;
+    this.speed = e.target.value;
   }
 
   toggleOnOff(event: any): void {
