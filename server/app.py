@@ -214,7 +214,7 @@ def resume_animation():
         return jsonify({'status': 'No animation exists'}), 500
 
 def import_and_start_animation(module_path, animation_name, params):
-    global animation_thread, current_animation_name, current_animation_module_path
+    global animation_thread, current_animation_name, current_animation_module_path, animation_instance
      # Import the module dynamically
     animation_module = import_module(module_path)
     
