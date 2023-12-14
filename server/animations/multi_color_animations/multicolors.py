@@ -3,14 +3,13 @@
 # Author: Austin Cuddeback (ajcuddeback@gmail.com)
 #
 # Colors all lights in a pattern of colors
-# Mocks the looks of traditional colorful Xmas light strip
 
 import time
-from .AbstractAnimation import  AbstractAnimation
+from .MultiColorAbstractAnimation import MultiColorAbstractAnimation
 
-class staticxmas(AbstractAnimation):
-    def __init__(self, neo_pixel_controller, color):
-        super().__init__(neo_pixel_controller, color)
+class multicolors(MultiColorAbstractAnimation):
+    def __init__(self, neo_pixel_controller, colors, speed):
+        super().__init__(neo_pixel_controller, colors, speed)
         self.max_runs = 1
         self.runs = 0
     
@@ -25,8 +24,7 @@ class staticxmas(AbstractAnimation):
                 break
             
     def static_xmas_colors(self):
-        colors = [(255,0,0), (0,255,0), (245,0,245), (255, 255, 0)]
         for i in range(self.controller.pixels.n):
-                index = i % len(colors)
-                self.controller.pixels[i] = colors[index]
+                index = i % len(self.colors)
+                self.controller.pixels[i] = self.colors[index]
         self.controller.pixels.show()
