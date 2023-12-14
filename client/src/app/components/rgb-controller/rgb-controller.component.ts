@@ -30,7 +30,11 @@ export class RgbControllerComponent {
         this.isOn = true;
       }
       this.isLoading = false;
-    })
+    });
+
+    this.rgbService.isOn.subscribe(isOn => {
+      this.isOn = isOn;
+    });
   }
 
   ngAfterViewInit(): void {
@@ -40,7 +44,6 @@ export class RgbControllerComponent {
         const element = event.target as HTMLInputElement;
         this.changeBrightnessLevel(parseInt(element.value));
       })
-    
   }
 
   convertBrightness(brightness: string) {
@@ -61,14 +64,14 @@ export class RgbControllerComponent {
 
   resumeAnimation(): void {
     this.rgbService.resumeAnimation().subscribe(response => {
-      this.isOn = true;
+      this.rgbService.isOn.next(true);
       console.log("RESPONSE: ", response);
     })
   }
 
   shutDown() {
     this.rgbService.shutDown().subscribe(response => {
-      this.isOn = false;
+      this.rgbService.isOn.next(false);
       console.log("RESPONSE: ", response)
     })
   }

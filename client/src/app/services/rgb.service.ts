@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { ActivetState } from '../interfaces/activeState.interface';
 
 @Injectable({
@@ -8,6 +8,7 @@ import { ActivetState } from '../interfaces/activeState.interface';
 })
 export class RgbService {
   speed: number = 300;
+  isOn: BehaviorSubject<boolean> = new BehaviorSubject(false);
 
   constructor(private http: HttpClient) { }
 

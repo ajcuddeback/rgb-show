@@ -50,6 +50,7 @@ export class MultiColorAnimationsComponent {
     });
 
     this.rgbService.startMultiColorAnimation(animationName, rgbColors).subscribe(response => {
+      this.rgbService.isOn.next(true);
       console.log("RESPONSE: ", response);
     });
   }
