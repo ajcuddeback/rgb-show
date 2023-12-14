@@ -186,9 +186,11 @@ def stop_animation():
     # Stop the current animation if it's running
     if animation_instance:
         animation_instance.stop()
+        print(f"CALLED THE STOP METHOD {animation_instance.is_running}")
+        print(f"IN: {animation_instance}")
         animation_instance = None
 
-    print("CALLED THE STOP METHOD")
+    
 
     # Wait for the animation thread to finish
     if animation_thread and animation_thread.is_alive():
