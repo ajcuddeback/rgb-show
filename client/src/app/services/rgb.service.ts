@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { Observable } from 'rxjs';
 import { ActivetState } from '../interfaces/activeState.interface';
 
 @Injectable({
@@ -12,15 +12,15 @@ export class RgbService {
   constructor(private http: HttpClient) { }
 
   startMultiColorAnimation(animationName: string, colors: number[][]): Observable<any> {
-    return this.http.post<any>(`/start_multi_color_animation/${animationName}`, {colors, speed: this.speed});
+    return this.http.post<any>(`/start_multi_color_animation/${animationName}`, {colors, speed: (this.speed * .001)});
   }
 
   startSingleColorAnimation(animationName: string, color: number[]): Observable<any> {
-    return this.http.post<any>(`/start_single_color_animation/${animationName}`, {color, speed: this.speed});
+    return this.http.post<any>(`/start_single_color_animation/${animationName}`, {color, speed: (this.speed * .001)});
   }
 
   startStaticAnimation(animationName: string): Observable<any> {
-    return this.http.post<any>(`/start_static_animation/${animationName}`, {speed: this.speed});
+    return this.http.post<any>(`/start_static_animation/${animationName}`, {speed: (this.speed * .001)});
   }
 
   changeBrightness(level: number): Observable<any> {
