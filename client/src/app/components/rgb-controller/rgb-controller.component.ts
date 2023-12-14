@@ -11,7 +11,7 @@ import { ActivetState } from 'src/app/interfaces/activeState.interface';
 export class RgbControllerComponent {
   brightness: number = 10;
   activeState: ActivetState;
-  isLoading: boolean = false;
+  isLoading: boolean = true;
   isOn: boolean = false;
   colors: number[][];
   color: number[];
