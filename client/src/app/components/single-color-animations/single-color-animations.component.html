@@ -1,0 +1,14 @@
+<div class="section">
+    <div class="header">
+        <h2>Single Color</h2>
+        <p>Change the color and watch the magic happen!</p>
+        <div class="single-color-input">
+            <input type="color" [value]="color" (input)="modifyColor($event)">
+        </div>
+    </div>
+    <div class="animations-buttons">
+        @for (animation of animations; track $index) {
+            <button class="animation-button" (click)="inititateAnimtion(animation.name)">{{ animation.description }}</button>
+        }
+    </div>
+</div>

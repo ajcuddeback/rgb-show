@@ -24,7 +24,7 @@
 @if(!isLoading) {
     <app-static-animations />
     <app-multi-color-animations [defaultColors]="colors" />
-    <app-single-color-animations />
+    <app-single-color-animations [defaultColor]="color" />
 } @else {
     Loading...
 }

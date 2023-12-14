@@ -13,8 +13,6 @@ export class MultiColorAnimationsComponent {
   @Input({ required: true }) defaultColors: number[][] = [];
   colors: string[] = [];
 
-  @ViewChildren('brightnessInput') brightnessInputs: QueryList<ElementRef>;
-
   constructor(private rgbService: RgbService) { }
 
   ngOnInit(): void {
