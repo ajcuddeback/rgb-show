@@ -2,7 +2,8 @@ import { Animations } from "src/app/interfaces/animations.interface";
 
 export const multiColorAnimations: Animations[] = [
     { name: 'climbanimation', description: 'Climb Animation' },
-    { name: 'alternatingcolors', description: 'Alternating Christmas Colors' }
+    { name: 'alternatingcolors', description: 'Alternating Colors' },
+    { name: 'multicolors', description: 'Static Colors' }
 ]
 
 export const singleColorAnimations: Animations[] = [

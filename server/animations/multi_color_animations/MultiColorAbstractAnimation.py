@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-class AbstractAnimation(ABC):
+class MultiColorAbstractAnimation(ABC):
     def __init__(self, neo_pixel_controller, colors, speed):
         self.controller = neo_pixel_controller
         self.colors = colors

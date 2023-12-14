@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-class AbstractAnimation(ABC):
+class StaticAbstractAnimation(ABC):
     def __init__(self, neo_pixel_controller, speed):
         self.controller = neo_pixel_controller
         self.speed = speed

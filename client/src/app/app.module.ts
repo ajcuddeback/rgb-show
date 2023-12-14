@@ -6,11 +6,13 @@ import { FormsModule } from '@angular/forms';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { RgbControllerComponent } from './components/rgb-controller/rgb-controller.component';
+import { MultiColorAnimationsComponent } from './components/multi-color-animations/multi-color-animations.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    RgbControllerComponent
+    RgbControllerComponent,
+    MultiColorAnimationsComponent
   ],
   imports: [
     BrowserModule,

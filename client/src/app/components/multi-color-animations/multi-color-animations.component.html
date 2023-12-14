@@ -1,0 +1,20 @@
+<div class="section">
+    <div class="header">
+        <h2>Multi Color</h2>
+        <p>Add new colors and watch the magic happen!</p>
+        <div class="single-color-input">
+            <div class="buttons">
+                <button class="add-remove" (click)="removeColorInput()">-</button>
+                <button class="add-remove" (click)="addColorInput()">+</button>
+            </div>
+            @for (color of colors; track $index) {
+                <input type="color" [value]="color" (input)="modifyColor($event, $index)">
+            }
+        </div>
+    </div>
+    <div class="animations-buttons">
+        @for (animation of animations; track $index) {
+            <button class="animation-button" (click)="inititateAnimtion(animation.name)">{{ animation.description }}</button>
+        }
+    </div>
+</div>
