@@ -18,7 +18,7 @@ export class MultiColorAnimationsComponent {
   constructor(private rgbService: RgbService) { }
 
   ngOnInit(): void {
-    if(this.defaultColors.length > 0) {
+    if(this.defaultColors?.length > 0) {
       this.defaultColors.forEach(color => {
         this.colors.push(this.rgbService.rgbToHex(color));
       })
