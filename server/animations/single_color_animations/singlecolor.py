@@ -5,11 +5,11 @@
 # Simply lights all lights to the same color based on the color param
 
 import time
-from .AbstractAnimation import  AbstractAnimation
+from .SingleColorAbstractAnimation import SingleColorAbstractAnimation
 
-class singlecolor(AbstractAnimation):
-    def __init__(self, neo_pixel_controller, color):
-        super().__init__(neo_pixel_controller, color)
+class singlecolor(SingleColorAbstractAnimation):
+    def __init__(self, neo_pixel_controller, color, speed):
+        super().__init__(neo_pixel_controller, color, speed)
         self.max_runs = 1
         self.runs = 0
     

@@ -6,13 +6,11 @@
 
 import time
 import threading
-from .AbstractAnimation import  AbstractAnimation
+from .MultiColorAbstractAnimation import  MultiColorAbstractAnimation
 
-class alternatingcolors(AbstractAnimation):
-    def __init__(self, neo_pixel_controller, color):
-        super().__init__(neo_pixel_controller, color)
-        self.colors = [(255,0,0), (0,255,0)]
-        self.speed = 1
+class alternatingcolors(MultiColorAbstractAnimation):
+    def __init__(self, neo_pixel_controller, colors, speed):
+        super().__init__(neo_pixel_controller, colors, speed)
         self.lock = threading.Lock()
     
     def run_animation(self):
