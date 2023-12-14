@@ -25,7 +25,7 @@ current_animation_module_path = ''
 current_params = {}
 current_color = (0,0,0)
 current_colors = []
-current_speed = 300
+current_speed = .3
 
 def run_animation_thread(animation_module):
     animation_module.run_animation()
