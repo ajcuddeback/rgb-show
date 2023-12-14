@@ -25,6 +25,7 @@ current_animation_module_path = ''
 current_params = {}
 current_color = (0,0,0)
 current_colors = []
+current_speed = 300
 
 def run_animation_thread(animation_module):
     animation_module.run_animation()
@@ -39,7 +40,7 @@ def root():
 
 @app.route('/start_multi_color_animation/<animation_name>', methods=['POST'])
 def start_multi_color(animation_name):
-    global current_colors, params
+    global current_colors, params, current_speed
 
     # Stop the current animation if it's running
     stop_animation()
@@ -79,12 +80,13 @@ def start_multi_color(animation_name):
     import_and_start_animation(module_path, animation_name, params)
 
     current_colors = colors
+    current_speed = speed
 
     return jsonify({'status': f'{animation_name} started'}), 200
 
 @app.route('/start_single_color_animation/<animation_name>', methods=['POST'])
 def start_single_color_animation(animation_name):
-    global color, current_color, params
+    global color, current_color, params, current_speed
 
     # Stop the current animation if it's running\
     stop_animation()
@@ -122,12 +124,13 @@ def start_single_color_animation(animation_name):
     import_and_start_animation(module_path, animation_name, params)
    
     current_color = color
+    current_speed = speed
 
     return jsonify({'status': f'{animation_name} started'}), 200
 
 @app.route('/start_static_animation/<animation_name>', methods=['POST'])
 def start_static_animation(animation_name):
-    global params
+    global params, current_speed
 
     # Stop the current animation if it's running\
     stop_animation()
@@ -155,6 +158,8 @@ def start_static_animation(animation_name):
     
     import_and_start_animation(module_path, animation_name, params)
 
+    current_speed = speed
+
     return jsonify({'status': f'{animation_name} started'}), 200
 
 
@@ -174,8 +179,8 @@ def change_brightness():
 
 @app.route('/get_active_state')
 def get_brightness():
-  global current_color, current_colors, current_animation_name
-  return jsonify({ 'brightness': f'{pixel_controller.brightness}', 'animation': current_animation_name, 'color': current_color, 'colors': current_colors  }), 200
+  global current_color, current_colors, current_animation_name, current_speed
+  return jsonify({ 'brightness': f'{pixel_controller.brightness}', 'animation': current_animation_name, 'color': current_color, 'colors': current_colors, 'speed': current_speed  }), 200
     
 @app.route('/stop_animation', methods=['POST'])
 def stop_animation():

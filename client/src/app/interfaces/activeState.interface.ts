@@ -3,4 +3,5 @@ export interface ActivetState {
     animation: string;
     color: number[];
     colors: number[][];
+    speed: number;
 }
