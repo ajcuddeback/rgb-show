@@ -27,8 +27,8 @@ export class RgbControllerComponent {
       this.brightness = this.convertBrightness(this.activeState.brightness);
       this.colors = this.activeState.colors;
       this.color = this.activeState.color;
-      this.speed = this.activeState.speed;
-      this.rgbService.speed = this.activeState.speed;
+      this.speed = this.activeState.speed * 1000;
+      this.rgbService.speed = this.activeState.speed * 1000;
       if(this.activeState.animation) {
         this.isOn = true;
       }
