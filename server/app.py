@@ -39,7 +39,7 @@ def root():
 
 @app.route('/start_multi_color_animation/<animation_name>', methods=['POST'])
 def start_multi_color(animation_name):
-    global animation_thread, animation_instance, current_animation_name, current_colors, params
+    global current_colors, params
 
     # Stop the current animation if it's running
     stop_animation()
@@ -84,7 +84,7 @@ def start_multi_color(animation_name):
 
 @app.route('/start_single_color_animation/<animation_name>', methods=['POST'])
 def start_single_color_animation(animation_name):
-    global animation_thread, animation_instance, current_animation_name, color, current_color, params
+    global color, current_color, params
 
     # Stop the current animation if it's running\
     stop_animation()
@@ -127,7 +127,7 @@ def start_single_color_animation(animation_name):
 
 @app.route('/start_static_animation/<animation_name>', methods=['POST'])
 def start_static_animation(animation_name):
-    global animation_thread, animation_instance, current_animation_name, color, current_color, params
+    global params
 
     # Stop the current animation if it's running\
     stop_animation()
@@ -174,14 +174,14 @@ def change_brightness():
 
 @app.route('/get_active_state')
 def get_brightness():
-  global current_color
+  global current_color, current_colors, current_animation_name
   return jsonify({ 'brightness': f'{pixel_controller.brightness}', 'animation': current_animation_name, 'color': current_color, 'colors': current_colors  }), 200
     
 @app.route('/stop_animation', methods=['POST'])
 def stop_animation():
     global animation_instance, animation_thread
 
-    print("stopping!")
+    print(f"stopping! {animation_instance}")
 
     # Stop the current animation if it's running
     if animation_instance:
@@ -190,7 +190,7 @@ def stop_animation():
         print(f"IN: {animation_instance}")
         animation_instance = None
 
-    
+    print("FINISHED stop")
 
     # Wait for the animation thread to finish
     if animation_thread and animation_thread.is_alive():
@@ -207,7 +207,7 @@ def stop_animation():
 @app.route('/resume_animation', methods=['POST'])
 def resume_animation():
     global current_animation_module_path, current_animation_name, params
-    if(current_animation_name & current_animation_module_path):
+    if(current_animation_name):
         import_and_start_animation(current_animation_module_path, current_animation_name, params)
         return jsonify({'status': 'Animation resumed'}), 200
     else: 
@@ -223,6 +223,7 @@ def import_and_start_animation(module_path, animation_name, params):
 
     # Instantiate the animation class with the NeoPixelController
     animation_instance = animation_class(pixel_controller, **params)
+    print("INSTANCE DONE")
 
     # Start the animation in a new thread
     animation_thread = threading.Thread(target=run_animation_thread, args=(animation_instance,))
