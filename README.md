@@ -1,92 +1,168 @@
-# RGB Neo Pixel Application
+# RGB Show — Christmas Tree Light Controller
 
-This application allows you to control RGB Neo Pixels using an Angular front-end and a Python Flask back-end. It's designed to work with a microcontroller or Raspberry Pi with GPIO pins connected to RGB Neo Pixels.
+Control a strand of NeoPixels (WS2811 / WS2812) wrapped around a Christmas tree from your phone.
+Flask + Python on a Raspberry Pi drives the lights; a small Angular app (pre-built, no Node needed on the Pi) is the remote.
 
-## Prerequisites
+- **22 animations** that understand the *shape* of the tree (height, angle, wraps): spirals, climbing rings, falling snow, fireworks that launch up the tree, aurora curtains, a pulsing tree-top star, and more.
+- **Every animation is customizable** — colors (with palettes), speeds, densities, directions — and changes apply **live** while it plays.
+- **Live preview** of the tree in the browser, mirroring exactly what the strand is showing.
+- **Presets**: save and recall your favorite looks.
+- **Survives reboots**: last animation, brightness and speed are restored on boot.
+- **Runs anywhere**: without NeoPixel hardware the server falls back to a simulator, so you can develop on a laptop.
 
-- Microcontroller or Raspberry Pi with GPIO pins
-- Neo Pixels Lights (For this app I am using WS2811, but any neopixel lights are compatible)
-- Install Python 3.x on Pi
-- Install Node.js and npm on Pi
+## Hardware
 
-## Getting Started
+- Raspberry Pi (any model with GPIO; Zero W works) with the data line on **GPIO18** (`board.D18`) by default
+- NeoPixel-compatible strand (WS2811 / WS2812 / SK6812). Count and tree layout are configured, not hard-coded.
+- Adequate 5V/12V supply for the strand, common ground with the Pi, ideally a level shifter on the data line.
 
-To quickly set up the RGB Neo Pixel application, use the provided bash script:
+## Quick start on the Pi
 
 ```bash
+git clone https://github.com/ajcuddeback/rgb-show.git ~/rgb-show
+cd ~/rgb-show
 ./setup.sh
 ```
 
-This script installs the necessary dependencies, sets up the Python Flask server, and launches the Angular application.
+`setup.sh` installs the Python dependencies, a **systemd service** (`rgb-show`) that starts on boot, and an nginx proxy on port 80. Open `http://<pi-ip>/`.
 
-## Running the Application
+Useful commands:
 
-1. Start the Python Flask server:
-
-   ```bash
-   python app.py
-   ```
-
-3. Open your web browser and navigate to `http://localhost:5000/` to access the RGB Neo Pixel control interface.
-
-## Extending Animations
-
-The application supports extending animations for dynamic lighting effects. To add new animations, add new Animation Classes under the `animations` directory and update the Angular front-end as needed.
-
-## Project Structure
-
-- **`client`**: Contains the Angular application for controlling the RGB Neo Pixels.
-- **`server`**: Houses the Python Flask server that interacts with the Neo Pixels and manages animations.
-- **`templates`**: Holds compiled Angular code
-
-## Running in a separate Daemon
-- Run: 
-   `sudo apt install nginx`
-
-- Run: 
-   `sudo nano /etc/nginx/sites-enabled/flask_app`
-  
-- In the open file, add the following code:
-```
-server {
-	listen 80;
-	
-	location / {
-		proxy_pass http://127.0.0.1:8000;
-		proxy_set_header Host $host;
-		proxy_set_header X-Forwarded-For $proxy_add_x_forwareded_for;
-	}
-}
+```bash
+sudo systemctl status rgb-show      # is it running?
+journalctl -u rgb-show -f           # live logs
+sudo systemctl restart rgb-show     # after changing config or pulling code
 ```
 
-- Overwrite nginx's default config:
-   `sudo unlink /etc/nginx/sites-enabled/default`
+### Redeploying after a `git pull`
 
-- Ensure syntax in file is correct:
-   `sudo nginx -t`
+The UI is committed pre-built in `templates/`, so a redeploy is just:
 
-- Reload nginx:
-   `sudo nginx -s reload`
+```bash
+cd ~/rgb-show && git pull && sudo systemctl restart rgb-show
+```
 
-- Install GUnicorn3:
-   `sudo apt install gunicorn3`
+If `server/requirements.txt` changed, run `./setup.sh` again (it's idempotent).
 
-- Navigate to the directory you install the code add and navigate to the server directory:
-   `cd ~/rgb-show/server`
+## Configuration
 
-- Run the app:
-   `gunicorn3 app:app --daemon`
+All settings are environment variables. For the systemd service, edit them in
+`/etc/systemd/system/rgb-show.service` (or `sudo systemctl edit rgb-show`), then
+`sudo systemctl daemon-reload && sudo systemctl restart rgb-show`.
 
-- Navigate to your pi's IP Address in your browser. You should see the app running
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `RGB_NUM_PIXELS` | `100` | Number of lights on the strand |
+| `RGB_PIN` | `D18` | `board` pin name the data line is on (`D18`, `D12`, `D21`, …) |
+| `RGB_TREE_RINGS` | auto | Lights per wrap, **bottom → top**, comma-separated, e.g. `30,20,15,10,10,10,5`. Must sum to `RGB_NUM_PIXELS` (it's normalized if not). Unset = a cone layout is synthesized from the pixel count. |
+| `RGB_LAYOUT` | `tree` | `tree` (spiral on a cone) or `strand` (straight line, e.g. a roofline) |
+| `RGB_BRIGHTNESS` | `0.1` | Startup brightness 0–1 (overridden by the saved state once you change it in the UI) |
+| `RGB_PIXEL_ORDER` | `RGB` | Color order of your strand: `RGB`, `GRB`, `BRG`, … If red shows as green, change this. |
+| `RGB_GAMMA` | `2.2` | Gamma correction so dim colors and fades look right on LEDs. `1.0` disables. |
+| `RGB_FPS` | `30` | Animation frame rate cap |
+| `RGB_AUTOSTART` | `true` | Resume the last animation on boot |
+| `RGB_DATA_DIR` | `server/` | Where `state.json` and `presets.json` are stored |
+| `RGB_SIMULATE` | `false` | Force the in-memory simulator even on a Pi |
+| `RGB_HOST` / `RGB_PORT` | `0.0.0.0` / `5000` | Only used by `python3 app.py` (gunicorn has its own `--bind`) |
 
-- To kill the app, run:
-   `sudo pkill -f gunicorn3`
+### Mapping your tree
 
+Count how many lights are on each wrap starting at the bottom and set `RGB_TREE_RINGS`.
+The spiral/climb/snow/fireworks effects use this to know which lights are at the same height and
+which side of the tree they're on. Close enough is fine.
 
-## Contributing
+## Using the app
 
-Contributions are welcome! Feel free to submit issues or pull requests to enhance the functionality of the RGB Neo Pixel application.
+- Tap any animation card to play it immediately. The card glows green while live.
+- The settings panel (right column on desktop, bottom sheet on phones) shows that animation's knobs. While it's live, every change applies instantly.
+- Color lists have palette chips (Classic, Candy Cane, Winter, Aurora, …), `+` to add, `×` to remove, shuffle and random buttons.
+- **Brightness** and **Speed** are global. Speed is a multiplier (0.25×–4×) applied on top of each animation's own tempo.
+- **Save as preset** stores the current animation + settings on the Pi.
+- The power toggle turns the lights off and remembers what was playing, so toggling back on resumes it.
+
+## Developing
+
+### Server (no Pi required)
+
+```bash
+cd server
+python3 -m venv .venv && . .venv/bin/activate
+pip install -r requirements-dev.txt
+RGB_SIMULATE=1 python app.py          # http://localhost:5000
+pytest                                 # 170+ tests covering every animation and the API
+```
+
+### Client
+
+```bash
+cd client
+npm ci
+npm start                              # dev server on :4200, proxies /api to :5000
+npm run build                          # production build straight into ../templates
+```
+
+**Commit the rebuilt `templates/` folder** — that's what the Pi serves.
+
+### Adding an animation
+
+Drop a class into `server/animations/effects/` — it's auto-discovered, and the UI builds its controls from `PARAMS`:
+
+```python
+from ..base import Animation, Param
+from ..colors import gradient
+
+class Heartbeat(Animation):
+    LABEL = "Heartbeat"
+    DESCRIPTION = "Two quick pulses, then a rest."
+    CATEGORY = "Motion"            # Static | Motion | Sparkle | Nature | Showpiece
+    PARAMS = [
+        Param("colors", "colors", "Colors", [(255, 0, 0), (120, 0, 0)]),
+        Param("bpm", "number", "Beats per minute", 60, min=30, max=180, step=1),
+    ]
+    PREVIEW = [(255, 0, 0)]
+
+    def render(self, t):           # t = seconds, already scaled by the global speed
+        beat = (t * self.p("bpm") / 60) % 1
+        level = max(0.0, 1 - beat * 3) + max(0.0, 1 - abs(beat - 0.3) * 6) * 0.6
+        self.fill(gradient(self.p("colors"), 1 - level, wrap=False))
+```
+
+`self.tree.height[i]`, `self.tree.angle[i]` and `self.tree.ring_of[i]` tell you where pixel `i` is on the tree.
+Param types: `color`, `colors`, `number`, `select`, `boolean`.
+
+## HTTP API
+
+| Method | Path | Body | Purpose |
+| --- | --- | --- | --- |
+| GET | `/api/state` | | Power, current animation + params, speed, brightness, tree config |
+| GET | `/api/animations` | | All animations with their param schemas |
+| POST | `/api/animations/<name>/start` | `{"params": {...}}` | Start an animation (missing params use defaults) |
+| PATCH | `/api/params` | `{"params": {...}}` | Live-update the running animation |
+| POST | `/api/power` | `{"on": true}` | Off remembers; on resumes |
+| POST | `/api/brightness` | `{"brightness": 0.3}` | 0–1 |
+| POST | `/api/speed` | `{"speed": 1.5}` | Global multiplier |
+| GET | `/api/frame` | | Current pixel colors (what the preview draws) |
+| GET/POST | `/api/presets` | `{"name": "..."}` | List / save current as preset |
+| POST | `/api/presets/<id>/apply` | | Play a preset |
+| DELETE | `/api/presets/<id>` | | Remove a preset |
+
+Handy from a shell or Home Assistant:
+
+```bash
+curl -X POST http://tree.local/api/animations/twinkle/start -H 'content-type: application/json' \
+     -d '{"params": {"colors": [[255,0,0],[0,255,0]], "density": 0.5}}'
+```
+
+## Project structure
+
+- `server/app.py` — Flask app and API
+- `server/engine.py` — owns the running animation thread, persistence
+- `server/tree.py` — pixel → (height, angle, wrap) geometry
+- `server/animations/` — base class, color helpers, registry, `effects/*`
+- `client/` — Angular 17 UI (standalone components + signals)
+- `templates/` — **built** UI, served by Flask
+- `deploy/` — systemd unit and nginx config
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE). Feel free to use and modify it for your needs.
+MIT — see [LICENSE](LICENSE).

@@ -1,0 +1,38 @@
+# systemd unit for the tree light server.
+#
+# Install:
+#   sudo cp deploy/rgb-show.service /etc/systemd/system/rgb-show.service
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now rgb-show
+#
+# Logs:    journalctl -u rgb-show -f
+# Restart: sudo systemctl restart rgb-show
+#
+# Adjust WorkingDirectory / ExecStart paths if the repo is not in /home/pi/rgb-show.
+# Tune the lights with Environment= lines (see README "Configuration").
+
+[Unit]
+Description=RGB Show - Christmas tree light controller
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# NeoPixels on GPIO18 need root for PWM/DMA access.
+User=root
+WorkingDirectory=/home/pi/rgb-show/server
+Environment=RGB_NUM_PIXELS=100
+Environment=RGB_PIN=D18
+Environment=RGB_TREE_RINGS=30,20,15,10,10,10,5
+Environment=RGB_BRIGHTNESS=0.1
+Environment=RGB_FPS=30
+Environment=PYTHONUNBUFFERED=1
+# Exactly ONE worker: the strand can only be driven by a single process.
+ExecStart=/usr/bin/python3 -m gunicorn --workers 1 --threads 4 --bind 127.0.0.1:8000 --timeout 60 app:app
+Restart=always
+RestartSec=3
+KillSignal=SIGINT
+TimeoutStopSec=10
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,23 @@
+@for (group of svc.categories(); track group.name) {
+  <section class="group">
+    <h3>{{ group.name }}</h3>
+    <div class="grid">
+      @for (def of group.items; track def.name) {
+        <button type="button" class="card"
+                [class.playing]="isPlaying(def)"
+                [class.selected]="isSelected(def)"
+                (click)="play(def)"
+                [attr.aria-pressed]="isPlaying(def)">
+          <span class="chip" [style.background]="chip(def)"></span>
+          <span class="body">
+            <span class="title">
+              {{ def.label }}
+              @if (isPlaying(def)) { <span class="live">LIVE</span> }
+            </span>
+            <span class="desc">{{ def.description }}</span>
+          </span>
+        </button>
+      }
+    </div>
+  </section>
+}

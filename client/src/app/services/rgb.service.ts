@@ -1,53 +1,238 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { ActivetState } from '../interfaces/activeState.interface';
+import { Injectable, computed, inject, signal } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Subject, catchError, debounceTime, firstValueFrom, forkJoin, of, switchMap } from 'rxjs';
+import { AnimationDef, Params, Preset, RgbState, RGB } from '../models';
 
-@Injectable({
-  providedIn: 'root'
-})
+const CATEGORY_ORDER = ['Static', 'Motion', 'Sparkle', 'Nature', 'Showpiece'];
+
+@Injectable({ providedIn: 'root' })
 export class RgbService {
-  speed: number = 300;
-  isOn: BehaviorSubject<boolean> = new BehaviorSubject(false);
+  private http = inject(HttpClient);
 
-  constructor(private http: HttpClient) { }
+  readonly state = signal<RgbState | null>(null);
+  readonly animations = signal<AnimationDef[]>([]);
+  readonly presets = signal<Preset[]>([]);
+  readonly error = signal<string | null>(null);
+  readonly offline = signal(false);
+  readonly loading = signal(true);
 
-  startMultiColorAnimation(animationName: string, colors: number[][]): Observable<any> {
-    return this.http.post<any>(`/start_multi_color_animation/${animationName}`, {colors, speed: (this.speed * .001)});
+  /** Animation currently shown in the editor (not necessarily the one playing). */
+  readonly selected = signal<string | null>(null);
+  /** Last-used params per animation so switching back keeps your tweaks. */
+  readonly drafts = signal<Record<string, Params>>({});
+
+  readonly power = computed(() => this.state()?.power ?? false);
+  readonly current = computed(() => this.state()?.animation ?? null);
+  readonly config = computed(() => this.state()?.config ?? null);
+  readonly brightness = computed(() => this.state()?.brightness ?? 0.1);
+  readonly speed = computed(() => this.state()?.speed ?? 1);
+
+  readonly byName = computed(() => new Map(this.animations().map(a => [a.name, a])));
+  readonly selectedDef = computed(() => this.byName().get(this.selected() ?? '') ?? null);
+  readonly currentDef = computed(() => this.byName().get(this.current() ?? '') ?? null);
+  readonly selectedIsPlaying = computed(() => !!this.selected() && this.selected() === this.current() && this.power());
+  readonly selectedParams = computed<Params>(() => {
+    const name = this.selected();
+    if (!name) { return {}; }
+    return this.drafts()[name] ?? this.defaultsFor(name);
+  });
+  readonly categories = computed(() => {
+    const groups = new Map<string, AnimationDef[]>();
+    for (const a of this.animations()) {
+      groups.set(a.category, [...(groups.get(a.category) ?? []), a]);
+    }
+    return [...groups.entries()]
+      .sort((a, b) => CATEGORY_ORDER.indexOf(a[0]) - CATEGORY_ORDER.indexOf(b[0]))
+      .map(([name, items]) => ({ name, items }));
+  });
+
+  private paramPatch$ = new Subject<Params>();
+  private brightness$ = new Subject<number>();
+  private speed$ = new Subject<number>();
+  private errorTimer: ReturnType<typeof setTimeout> | null = null;
+
+  constructor() {
+    this.paramPatch$.pipe(
+      debounceTime(120),
+      switchMap(params => this.http.patch<RgbState>('/api/params', { params }).pipe(catchError(e => this.fail(e)))),
+    ).subscribe(s => this.applyState(s, false));
+
+    this.brightness$.pipe(
+      debounceTime(80),
+      switchMap(brightness => this.http.post<RgbState>('/api/brightness', { brightness }).pipe(catchError(e => this.fail(e)))),
+    ).subscribe(s => this.applyState(s, false));
+
+    this.speed$.pipe(
+      debounceTime(80),
+      switchMap(speed => this.http.post<RgbState>('/api/speed', { speed }).pipe(catchError(e => this.fail(e)))),
+    ).subscribe(s => this.applyState(s, false));
   }
 
-  startSingleColorAnimation(animationName: string, color: number[]): Observable<any> {
-    return this.http.post<any>(`/start_single_color_animation/${animationName}`, {color, speed: (this.speed * .001)});
+  // ------------------------------------------------------------------ loading
+  async load(): Promise<void> {
+    try {
+      const { state, animations, presets } = await firstValueFrom(forkJoin({
+        state: this.http.get<RgbState>('/api/state'),
+        animations: this.http.get<{ animations: AnimationDef[] }>('/api/animations'),
+        presets: this.http.get<{ presets: Preset[] }>('/api/presets'),
+      }));
+      this.animations.set(animations.animations);
+      this.presets.set(presets.presets);
+      this.applyState(state, true);
+      if (!this.selected()) {
+        this.selected.set(state.animation ?? animations.animations[0]?.name ?? null);
+      }
+      this.offline.set(false);
+    } catch (e) {
+      this.offline.set(true);
+      this.fail(e as HttpErrorResponse);
+    } finally {
+      this.loading.set(false);
+    }
   }
 
-  startStaticAnimation(animationName: string): Observable<any> {
-    return this.http.post<any>(`/start_static_animation/${animationName}`, {speed: (this.speed * .001)});
+  async refreshState(): Promise<void> {
+    try {
+      const s = await firstValueFrom(this.http.get<RgbState>('/api/state'));
+      this.applyState(s, false);
+      this.offline.set(false);
+    } catch {
+      this.offline.set(true);
+    }
   }
 
-  changeBrightness(level: number): Observable<any> {
-    return this.http.post<any>('/change_brightness', { brightness: level });
+  getFrame() {
+    return this.http.get<{ pixels: RGB[]; brightness: number }>('/api/frame');
   }
 
-  shutDown(): Observable<any> {
-    return this.http.post<any>('/stop_animation', {});
+  // ----------------------------------------------------------------- actions
+  select(name: string): void {
+    this.selected.set(name);
   }
 
-  resumeAnimation(): Observable<any> {
-    return this.http.post<any>('/resume_animation', {});
+  async start(name: string, params?: Params): Promise<void> {
+    const p = params ?? this.drafts()[name] ?? this.defaultsFor(name);
+    this.selected.set(name);
+    this.setDraft(name, p);
+    await this.post(`/api/animations/${name}/start`, { params: p }, true);
   }
 
-  getActiveState(): Observable<ActivetState> {
-    return this.http.get<ActivetState>('/get_active_state');
+  setParam(key: string, value: unknown): void {
+    const name = this.selected();
+    if (!name) { return; }
+    const next = { ...this.selectedParams(), [key]: value };
+    this.setDraft(name, next);
+    if (this.selectedIsPlaying()) {
+      this.paramPatch$.next(next);
+    }
   }
 
-  convertHexToRGB(value: string): number[] {
-    const r = parseInt(value.substr(1,2), 16)
-    const g = parseInt(value.substr(3,2), 16)
-    const b = parseInt(value.substr(5,2), 16)
-    return [r, g, b];
+  resetParams(): void {
+    const name = this.selected();
+    if (!name) { return; }
+    const defaults = this.defaultsFor(name);
+    this.setDraft(name, defaults);
+    if (this.selectedIsPlaying()) {
+      this.paramPatch$.next(defaults);
+    }
   }
 
-  rgbToHex(rgb: number[]) {
-    return "#" + ((1 << 24) + (rgb[0] << 16) + (rgb[1] << 8) + rgb[2]).toString(16).slice(1);
+  setBrightness(value: number): void {
+    this.patchLocal({ brightness: value });
+    this.brightness$.next(value);
+  }
+
+  setSpeed(value: number): void {
+    this.patchLocal({ speed: value });
+    this.speed$.next(value);
+  }
+
+  async setPower(on: boolean): Promise<void> {
+    this.patchLocal({ power: on });
+    await this.post('/api/power', { on }, true);
+  }
+
+  // ----------------------------------------------------------------- presets
+  async savePreset(name: string): Promise<void> {
+    const animation = this.selected();
+    if (!animation) { return; }
+    try {
+      const preset = await firstValueFrom(this.http.post<Preset>('/api/presets', {
+        name, animation, params: this.selectedParams(), includeSpeed: true,
+      }));
+      this.presets.update(list => [...list, preset]);
+    } catch (e) {
+      this.fail(e as HttpErrorResponse);
+    }
+  }
+
+  async applyPreset(id: string): Promise<void> {
+    const s = await this.post(`/api/presets/${id}/apply`, {}, true);
+    if (s?.animation) { this.selected.set(s.animation); }
+  }
+
+  async deletePreset(id: string): Promise<void> {
+    try {
+      await firstValueFrom(this.http.delete(`/api/presets/${id}`));
+      this.presets.update(list => list.filter(p => p.id !== id));
+    } catch (e) {
+      this.fail(e as HttpErrorResponse);
+    }
+  }
+
+  // ----------------------------------------------------------------- helpers
+  defaultsFor(name: string): Params {
+    const def = this.byName().get(name);
+    const out: Params = {};
+    for (const p of def?.params ?? []) {
+      out[p.key] = p.default;
+    }
+    return out;
+  }
+
+  dismissError(): void {
+    this.error.set(null);
+  }
+
+  private setDraft(name: string, params: Params): void {
+    this.drafts.update(d => ({ ...d, [name]: params }));
+  }
+
+  private patchLocal(partial: Partial<RgbState>): void {
+    const s = this.state();
+    if (s) { this.state.set({ ...s, ...partial }); }
+  }
+
+  private async post(url: string, body: unknown, syncDraft: boolean): Promise<RgbState | null> {
+    try {
+      const s = await firstValueFrom(this.http.post<RgbState>(url, body));
+      this.applyState(s, syncDraft);
+      return s;
+    } catch (e) {
+      this.fail(e as HttpErrorResponse);
+      await this.refreshState();
+      return null;
+    }
+  }
+
+  private applyState(s: RgbState | null, syncDraft: boolean): void {
+    if (!s) { return; }
+    this.state.set(s);
+    this.offline.set(false);
+    if (syncDraft && s.animation) {
+      this.setDraft(s.animation, s.params);
+    }
+  }
+
+  private fail(e: HttpErrorResponse | Error) {
+    const http = e as HttpErrorResponse;
+    const msg = http?.status === 0
+      ? 'Cannot reach the tree. Is the server running?'
+      : (http?.error?.error ?? http?.message ?? 'Something went wrong');
+    this.error.set(msg);
+    if (http?.status === 0) { this.offline.set(true); }
+    if (this.errorTimer) { clearTimeout(this.errorTimer); }
+    this.errorTimer = setTimeout(() => this.error.set(null), 6000);
+    return of(null);
   }
 }

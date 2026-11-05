@@ -1,0 +1,8 @@
+# Web server
+flask>=2.3
+gunicorn>=20.1
+
+# Raspberry Pi hardware (skipped automatically when unavailable; set RGB_SIMULATE=1 to develop elsewhere)
+rpi_ws281x; platform_machine in "armv6l armv7l aarch64"
+adafruit-blinka; platform_machine in "armv6l armv7l aarch64"
+adafruit-circuitpython-neopixel; platform_machine in "armv6l armv7l aarch64"

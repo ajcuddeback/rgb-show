@@ -289,3 +289,8 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# rgb-show runtime data
+server/state.json
+server/presets.json
+server/*.json.tmp

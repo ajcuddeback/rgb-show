@@ -2,233 +2,212 @@
 # Flask Server Entry Point
 # Author: Austin Cuddeback (ajcuddeback@gmail.com)
 #
-# Simple Flask Server to connect and run animations through a web application
+# Serves the compiled Angular app from ../templates and exposes a small JSON
+# API under /api for controlling the lights.
+#
+# Configuration is via environment variables (see config.py / README):
+#   RGB_NUM_PIXELS=100 RGB_PIN=D18 RGB_TREE_RINGS=30,20,15,10,10,10,5 ...
+# Run with RGB_SIMULATE=1 on a laptop to develop without a Pi.
 
-from flask import Flask, jsonify, send_from_directory, request
-from importlib import import_module
-import threading
-import board
+import atexit
+import logging
+import os
+
+from flask import Flask, jsonify, request, send_from_directory, abort
+from werkzeug.exceptions import HTTPException
+
+from config import Config
 from neopixel_controller import NeoPixelController
+from tree import TreeLayout
+from engine import AnimationEngine
+from presets import PresetStore
+from animations import registry
 
-app = Flask(__name__)
+logging.basicConfig(level=os.environ.get("RGB_LOG_LEVEL", "INFO"),
+                    format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+log = logging.getLogger("rgb-show")
 
-# Change these variables according to your configuration
-PIN_NUMBER = board.D18
-NUM_PIXELS = 100
+TEMPLATES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "templates")
 
-pixel_controller = NeoPixelController(num_pixels=NUM_PIXELS, pin=PIN_NUMBER)
 
-animation_instance = None
-animation_thread = None
-current_animation_name = ''
-current_animation_module_path = ''
-current_params = {}
-current_color = (0,0,0)
-current_colors = []
-current_speed = .3
+def create_app(config: Config = None) -> Flask:
+    config = config or Config.from_env()
+    controller = NeoPixelController(
+        num_pixels=config.num_pixels, pin_name=config.pin_name, brightness=config.brightness,
+        pixel_order=config.pixel_order, gamma=config.gamma, simulate=config.simulate,
+    )
+    config.simulate = controller.simulated
+    tree = TreeLayout(config.resolved_rings())
+    engine = AnimationEngine(controller, tree, config)
+    presets = PresetStore(config.presets_file)
 
-def run_animation_thread(animation_module):
-    animation_module.run_animation()
+    app = Flask(__name__, static_folder=None)
+    app.config["JSON_SORT_KEYS"] = False
+    app.extensions["rgb"] = {"config": config, "controller": controller, "tree": tree,
+                             "engine": engine, "presets": presets}
 
-@app.route('/<path:path>', methods=['GET'])
-def static_proxy(path):
-  return send_from_directory('../templates', path)
+    log.info("rgb-show: %d pixels on %s, rings=%s, simulated=%s",
+             config.num_pixels, config.pin_name, tree.rings, controller.simulated)
 
-@app.route('/')
-def root():
-  return send_from_directory('../templates', 'index.html')
+    # ----------------------------------------------------------- static files
+    @app.route("/")
+    def root():
+        return send_from_directory(TEMPLATES_DIR, "index.html")
 
-@app.route('/start_multi_color_animation/<animation_name>', methods=['POST'])
-def start_multi_color(animation_name):
-    global current_colors, params, current_speed
+    @app.route("/<path:path>", methods=["GET"])
+    def static_proxy(path):
+        if path.startswith("api/"):
+            abort(404)
+        full = os.path.join(TEMPLATES_DIR, path)
+        if os.path.isfile(full):
+            return send_from_directory(TEMPLATES_DIR, path)
+        # Unknown paths fall back to the SPA shell
+        return send_from_directory(TEMPLATES_DIR, "index.html")
 
-    # Stop the current animation if it's running
-    stop_animation()
+    # ------------------------------------------------------------------- api
+    def body() -> dict:
+        data = request.get_json(silent=True)
+        if not isinstance(data, dict):
+            abort(400, description="Expected a JSON object body")
+        return data
 
-    if request.is_json:
-        json_data = request.get_json()
-        colors = []
-        speed = 0
-        # Check if 'color' is in json_data
-        if 'colors' in json_data:
-            # Check if json_data['color'] is a list
-            if isinstance(json_data['colors'], list):
-            # Convert each inner array to a tuple
-                colors = [tuple(color) for color in json_data['colors']]
-            else:
-                return jsonify({'error': 'JSON data "colors" must be an array'}), 400
-            
-             # Check if 'speed' is in json_data
-            if 'speed' in json_data:
-                speed = json_data['speed']
-            else:
-                return jsonify({'error': 'speed is required!'}), 400
+    def full_state() -> dict:
+        s = engine.state()
+        s["config"] = config.public()
+        return s
+
+    @app.get("/api/state")
+    def get_state():
+        return jsonify(full_state())
+
+    @app.get("/api/animations")
+    def list_animations():
+        return jsonify({"animations": registry.describe_all()})
+
+    @app.post("/api/animations/<name>/start")
+    def start_animation(name):
+        if name not in registry.all_animations():
+            abort(404, description=f"Unknown animation '{name}'")
+        data = request.get_json(silent=True) or {}
+        params = data.get("params") if isinstance(data, dict) else None
+        if params is not None and not isinstance(params, dict):
+            abort(400, description="'params' must be an object")
+        if isinstance(data, dict) and "speed" in data:
+            engine.set_speed(data["speed"])
+        if isinstance(data, dict) and "brightness" in data:
+            engine.set_brightness(data["brightness"])
+        engine.start(name, params)
+        return jsonify(full_state())
+
+    @app.patch("/api/params")
+    def update_params():
+        data = body()
+        params = data.get("params", data)
+        if not isinstance(params, dict):
+            abort(400, description="'params' must be an object")
+        try:
+            engine.update_params(params)
+        except RuntimeError as exc:
+            abort(409, description=str(exc))
+        return jsonify(full_state())
+
+    @app.post("/api/power")
+    def set_power():
+        data = body()
+        on = data.get("on")
+        if not isinstance(on, bool):
+            abort(400, description="'on' must be true or false")
+        if on:
+            try:
+                engine.power_on()
+            except RuntimeError:
+                # Nothing to resume yet: light something pleasant instead of doing nothing.
+                engine.start("twinkle")
         else:
-            return jsonify({'error': 'COLORS are required!'}), 400
-    else:
-        return jsonify({'error': 'Invalid JSON data'}), 400
-    
-    # Import the animation class dynamically
-    # Specify the full module path
-    module_path = f'animations.multi_color_animations.{animation_name}'
+            engine.power_off()
+        return jsonify(full_state())
 
-    params = { 
-        "colors": colors,
-        "speed": speed
-    }
+    @app.post("/api/brightness")
+    def set_brightness():
+        data = body()
+        try:
+            level = float(data.get("brightness"))
+        except (TypeError, ValueError):
+            abort(400, description="'brightness' must be a number 0..1")
+        engine.set_brightness(level)
+        return jsonify(full_state())
 
-    import_and_start_animation(module_path, animation_name, params)
+    @app.post("/api/speed")
+    def set_speed():
+        data = body()
+        try:
+            speed = float(data.get("speed"))
+        except (TypeError, ValueError):
+            abort(400, description="'speed' must be a number (1 = normal)")
+        engine.set_speed(speed)
+        return jsonify(full_state())
 
-    current_colors = colors
-    current_speed = speed
+    @app.get("/api/frame")
+    def get_frame():
+        return jsonify({"pixels": [list(c) for c in controller.get_frame()],
+                        "brightness": controller.brightness})
 
-    return jsonify({'status': f'{animation_name} started'}), 200
+    # --------------------------------------------------------------- presets
+    @app.get("/api/presets")
+    def list_presets():
+        return jsonify({"presets": presets.list()})
 
-@app.route('/start_single_color_animation/<animation_name>', methods=['POST'])
-def start_single_color_animation(animation_name):
-    global color, current_color, params, current_speed
+    @app.post("/api/presets")
+    def add_preset():
+        data = body()
+        state = engine.state()
+        animation = data.get("animation") or state["animation"]
+        if not animation or animation not in registry.all_animations():
+            abort(400, description="No animation to save")
+        params = data.get("params") if isinstance(data.get("params"), dict) else state["params"]
+        params = registry.get(animation).coerce_params(params)
+        preset = presets.add(
+            name=str(data.get("name") or registry.get(animation).LABEL),
+            animation=animation,
+            params={k: (list(v) if isinstance(v, tuple) else [list(c) for c in v] if isinstance(v, list) and v and isinstance(v[0], tuple) else v)
+                    for k, v in params.items()},
+            speed=state["speed"] if data.get("includeSpeed", True) else None,
+            brightness=state["brightness"] if data.get("includeBrightness", False) else None,
+        )
+        return jsonify(preset), 201
 
-    # Stop the current animation if it's running\
-    stop_animation()
-    speed = 0
-    if request.is_json:
-        json_data = request.get_json()
+    @app.post("/api/presets/<preset_id>/apply")
+    def apply_preset(preset_id):
+        preset = presets.get(preset_id)
+        if not preset:
+            abort(404, description="Preset not found")
+        if preset.get("speed") is not None:
+            engine.set_speed(preset["speed"])
+        if preset.get("brightness") is not None:
+            engine.set_brightness(preset["brightness"])
+        engine.start(preset["animation"], preset.get("params") or {})
+        return jsonify(full_state())
 
-        # Check if 'color' is in json_data
-        if 'color' in json_data:
-            # Check if json_data['color'] is a list
-            if isinstance(json_data['color'], list):
-                color = tuple(json_data['color'])
-            else:
-                return jsonify({'error': 'JSON data "color" must be an array'}), 400
-            
-             # Check if 'speed' is in json_data
-            if 'speed' in json_data:
-                speed = json_data['speed']
-            else:
-                return jsonify({'error': 'speed is required!'}), 400
-        else:
-            return jsonify({'error': 'COLOR is required!'}), 400
-    else:
-        return jsonify({'error': 'Invalid JSON data'}), 400
-    
-    # Import the animation class dynamically
-    # Specify the full module path
-    module_path = f'animations.single_color_animations.{animation_name}'
+    @app.delete("/api/presets/<preset_id>")
+    def delete_preset(preset_id):
+        if not presets.delete(preset_id):
+            abort(404, description="Preset not found")
+        return jsonify({"deleted": preset_id})
 
-    params = {
-        "color": color,
-        "speed": speed
-    }
-    
-    import_and_start_animation(module_path, animation_name, params)
-   
-    current_color = color
-    current_speed = speed
+    # ---------------------------------------------------------------- errors
+    @app.errorhandler(HTTPException)
+    def handle_http_error(exc):
+        return jsonify({"error": exc.description, "status": exc.code}), exc.code
 
-    return jsonify({'status': f'{animation_name} started'}), 200
-
-@app.route('/start_static_animation/<animation_name>', methods=['POST'])
-def start_static_animation(animation_name):
-    global params, current_speed
-
-    # Stop the current animation if it's running\
-    stop_animation()
-
-    speed = 0
-
-    if request.is_json:
-        json_data = request.get_json()
-
-        # Check if 'speed' is in json_data
-        if 'speed' in json_data:
-            speed = json_data['speed']
-        else:
-            return jsonify({'error': 'speed is required!'}), 400
-    else:
-        return jsonify({'error': 'Invalid JSON data'}), 400
-    
-    # Import the animation class dynamically
-    # Specify the full module path
-    module_path = f'animations.static_animations.{animation_name}'
-
-    params = {
-        "speed": speed,
-    }
-    
-    import_and_start_animation(module_path, animation_name, params)
-
-    current_speed = speed
-
-    return jsonify({'status': f'{animation_name} started'}), 200
+    engine.restore()
+    atexit.register(engine.shutdown)
+    return app
 
 
-@app.route('/change_brightness', methods=['POST'])
-def change_brightness():
-    if request.is_json:
-        json_data = request.get_json()
-        
-        if 'brightness' in json_data:
-            pixel_controller.change_brightness(json_data['brightness'])
-        else:
-            return jsonify({'error': 'BRIGHTNESS is required!'}), 400
-    else:
-        return jsonify({'error': 'Invalid JSON data'}), 400
-    
-    return jsonify({'status': 'Brightness changed!'}), 200
+app = create_app()
 
-@app.route('/get_active_state')
-def get_brightness():
-  global current_color, current_colors, current_animation_name, current_speed
-  return jsonify({ 'brightness': f'{pixel_controller.brightness}', 'animation': current_animation_name, 'color': current_color, 'colors': current_colors, 'speed': current_speed  }), 200
-    
-@app.route('/stop_animation', methods=['POST'])
-def stop_animation():
-    global animation_instance, animation_thread
-
-    # Stop the current animation if it's running
-    if animation_instance:
-        animation_instance.stop()
-        animation_instance = None
-
-    # Wait for the animation thread to finish
-    if animation_thread and animation_thread.is_alive():
-        animation_thread.join()
-
-    pixel_controller.turn_off_all_lights()
-
-    return jsonify({'status': 'Animation stopped'}), 200
-
-@app.route('/resume_animation', methods=['POST'])
-def resume_animation():
-    global current_animation_module_path, current_animation_name, params
-    if(current_animation_name):
-        import_and_start_animation(current_animation_module_path, current_animation_name, params)
-        return jsonify({'status': 'Animation resumed'}), 200
-    else: 
-        return jsonify({'status': 'No animation exists'}), 500
-
-def import_and_start_animation(module_path, animation_name, params):
-    global animation_thread, current_animation_name, current_animation_module_path, animation_instance
-     # Import the module dynamically
-    animation_module = import_module(module_path)
-    
-    # Get the animation class dynamically
-    animation_class = getattr(animation_module, animation_name)
-
-    # Instantiate the animation class with the NeoPixelController
-    animation_instance = animation_class(pixel_controller, **params)
-
-    # Start the animation in a new thread
-    animation_thread = threading.Thread(target=run_animation_thread, args=(animation_instance,))
-    animation_thread.start()
-    current_animation_name = animation_name
-    current_animation_module_path = module_path
-
-if __name__ == '__main__':
-  # Run server
-  app.run(
-    debug=True,
-    host='0.0.0.0',
-    port=5000,
-    threaded=False)
+if __name__ == "__main__":
+    cfg = app.extensions["rgb"]["config"]
+    # use_reloader=False: the reloader forks a second process that would open the GPIO pin twice.
+    app.run(debug=os.environ.get("RGB_DEBUG", "0") == "1", host=cfg.host, port=cfg.port,
+            threaded=True, use_reloader=False)
