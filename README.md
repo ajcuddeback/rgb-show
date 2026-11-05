@@ -148,6 +148,14 @@ RGB_SIMULATE=1 python app.py          # http://localhost:5000
 pytest                                 # 170+ tests covering every animation and the API
 ```
 
+### Why the preview polls instead of using WebSockets
+
+The live preview fetches `/api/frame` ~8×/s (only while the tab is visible and the lights are on). That's a
+~600-byte response over a kept-alive connection — cheap, and it works through any reverse proxy with no
+special config. WebSockets would add a Flask extension, a different gunicorn worker class and a proxy toggle;
+Server-Sent Events would pin one of gunicorn's few worker threads per open tab. Neither buys anything for a
+single-household light controller, so polling stays.
+
 ### Client
 
 ```bash
