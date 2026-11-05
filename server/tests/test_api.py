@@ -100,8 +100,9 @@ def test_brightness_and_speed(client):
 
 def test_frame_endpoint(client):
     client.post("/api/animations/solid/start", json={"params": {"color": [10, 20, 30]}})
-    assert wait_until(lambda: client.get("/api/frame").get_json()["pixels"][0] == [10, 20, 30])
-    assert len(client.get("/api/frame").get_json()["pixels"]) == 100
+    assert wait_until(lambda: client.get("/api/frame").get_json()["hex"][:6] == "0a141e")
+    data = client.get("/api/frame").get_json()
+    assert data["n"] == 100 and len(data["hex"]) == 600
 
 
 def test_unknown_animation_404(client):

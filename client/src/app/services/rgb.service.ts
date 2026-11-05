@@ -1,6 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Subject, catchError, debounceTime, firstValueFrom, forkJoin, of, switchMap } from 'rxjs';
+import { Subject, catchError, debounceTime, firstValueFrom, forkJoin, map, of, switchMap } from 'rxjs';
 import { AnimationDef, Params, Preset, RgbState, RGB } from '../models';
 
 const CATEGORY_ORDER = ['Static', 'Motion', 'Sparkle', 'Nature', 'Showpiece'];
@@ -20,6 +20,8 @@ export class RgbService {
   readonly selected = signal<string | null>(null);
   /** Last-used params per animation so switching back keeps your tweaks. */
   readonly drafts = signal<Record<string, Params>>({});
+  /** Bumps every time the user taps an animation tile (UI uses it to open the settings sheet). */
+  readonly lastTap = signal(0);
 
   readonly power = computed(() => this.state()?.power ?? false);
   readonly current = computed(() => this.state()?.animation ?? null);
@@ -102,7 +104,16 @@ export class RgbService {
   }
 
   getFrame() {
-    return this.http.get<{ pixels: RGB[]; brightness: number }>('/api/frame');
+    return this.http.get<{ n: number; hex: string; brightness: number }>('/api/frame').pipe(
+      map(res => {
+        const pixels: RGB[] = new Array(res.n);
+        for (let i = 0; i < res.n; i++) {
+          const o = i * 6;
+          pixels[i] = [parseInt(res.hex.slice(o, o + 2), 16), parseInt(res.hex.slice(o + 2, o + 4), 16), parseInt(res.hex.slice(o + 4, o + 6), 16)];
+        }
+        return { pixels, brightness: res.brightness };
+      }),
+    );
   }
 
   // ----------------------------------------------------------------- actions
@@ -110,9 +121,10 @@ export class RgbService {
     this.selected.set(name);
   }
 
-  async start(name: string, params?: Params): Promise<void> {
+  async start(name: string, params?: Params, fromTap = false): Promise<void> {
     const p = params ?? this.drafts()[name] ?? this.defaultsFor(name);
     this.selected.set(name);
+    if (fromTap) { this.lastTap.set(Date.now()); }
     this.setDraft(name, p);
     await this.post(`/api/animations/${name}/start`, { params: p }, true);
   }

@@ -7,7 +7,7 @@ import { Preset, rgbToHex } from '../../models';
   standalone: true,
   template: `
     @if (svc.presets().length === 0) {
-      <p class="muted small">Nothing saved yet. Open an animation and choose “Save as preset”.</p>
+      <p class="muted small">Nothing saved yet. Dial in an animation and hit “Save preset”.</p>
     } @else {
       <ul>
         @for (p of svc.presets(); track p.id) {
@@ -21,26 +21,29 @@ import { Preset, rgbToHex } from '../../models';
                 <span class="muted small">{{ labelOf(p) }}</span>
               </span>
             </button>
-            <button type="button" class="remove" (click)="remove(p)" aria-label="Delete preset">×</button>
+            <button type="button" class="remove" (click)="remove(p)" aria-label="Delete preset">
+              <svg viewBox="0 0 24 24" width="16" height="16"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
           </li>
         }
       </ul>
     }
   `,
   styles: [`
-    ul { list-style: none; margin: 0; padding: 0; }
-    li { display: flex; align-items: center; border-top: 1px solid var(--line); &:last-child { border-bottom: 1px solid var(--line); } }
-    li.active .name { color: var(--red); }
+    ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+    li { display: flex; align-items: center; gap: 2px; border-radius: 12px; }
+    li.active { background: var(--surface-2); }
+    li.active .name { color: var(--green); }
     .apply {
       flex: 1; display: flex; align-items: center; gap: 12px; text-align: left; min-width: 0; cursor: pointer;
-      background: transparent; border: 0; padding: 10px 4px; border-radius: 6px;
-      &:hover { background: var(--paper-2); }
+      background: transparent; border: 0; padding: 8px 10px; border-radius: 12px;
+      &:hover { background: var(--surface-2); }
     }
     .dots { display: inline-flex; flex: 0 0 auto; }
-    .dot { width: 12px; height: 12px; border-radius: 50%; margin-right: -4px; box-shadow: 0 0 0 2px var(--paper), inset 0 0 0 1px rgba(0,0,0,0.12); }
+    .dot { width: 14px; height: 14px; border-radius: 50%; margin-right: -5px; box-shadow: 0 0 0 2px var(--surface); }
     .text { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
-    .name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .remove { border: 0; background: transparent; color: var(--ink-3); font-size: 1.1rem; padding: 6px 8px; cursor: pointer; &:hover { color: var(--red); } }
+    .name { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .remove { border: 0; background: transparent; color: var(--text-3); padding: 8px; cursor: pointer; border-radius: 8px; display: inline-flex; &:hover { color: var(--red); background: var(--surface-2); } }
   `],
 })
 export class PresetsPanelComponent {

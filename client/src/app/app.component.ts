@@ -1,29 +1,36 @@
-import { Component, HostListener, OnInit, inject } from '@angular/core';
+import { Component, HostListener, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
 import { filter } from 'rxjs';
 import { RgbService } from './services/rgb.service';
-import { PowerToggleComponent } from './components/power-toggle/power-toggle.component';
+import { rgbToHex } from './models';
 import { GlobalControlsComponent } from './components/global-controls/global-controls.component';
 import { TreePreviewComponent } from './components/tree-preview/tree-preview.component';
 import { AnimationGridComponent } from './components/animation-grid/animation-grid.component';
+import { ParamEditorComponent } from './components/param-editor/param-editor.component';
 import { PresetsPanelComponent } from './components/presets-panel/presets-panel.component';
 import { TreeSetupComponent } from './components/tree-setup/tree-setup.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [PowerToggleComponent, GlobalControlsComponent, TreePreviewComponent, AnimationGridComponent, PresetsPanelComponent, TreeSetupComponent],
+  imports: [GlobalControlsComponent, TreePreviewComponent, AnimationGridComponent, ParamEditorComponent, PresetsPanelComponent, TreeSetupComponent],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent implements OnInit {
   svc = inject(RgbService);
   private updates = inject(SwUpdate);
+  sheetOpen = signal(false);
+
+  peekColors = computed(() => (this.svc.selectedDef()?.preview ?? []).slice(0, 5).map(rgbToHex));
+
+  constructor() {
+    // Opening an animation on a phone pops the sheet up
+    effect(() => { if (this.svc.lastTap() > 0 && window.innerWidth <= 1180) { this.sheetOpen.set(true); } }, { allowSignalWrites: true });
+  }
 
   ngOnInit(): void {
     void this.svc.load();
-    // Installed-app users get new deploys automatically: when the service
-    // worker has fetched a new version, switch to it and reload.
     if (this.updates.isEnabled) {
       this.updates.versionUpdates
         .pipe(filter((e): e is VersionReadyEvent => e.type === 'VERSION_READY'))
@@ -33,12 +40,8 @@ export class AppComponent implements OnInit {
 
   @HostListener('document:visibilitychange')
   onVisibility(): void {
-    if (document.visibilityState === 'visible') {
-      void this.svc.refreshState();
-    }
+    if (document.visibilityState === 'visible') { void this.svc.refreshState(); }
   }
 
-  retry(): void {
-    void this.svc.load();
-  }
+  retry(): void { void this.svc.load(); }
 }

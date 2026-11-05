@@ -1,9 +1,15 @@
 @if (def(); as d) {
-  <p class="muted small desc">{{ d.description }}</p>
-
-  @if (!playing()) {
-    <button type="button" class="btn primary play" (click)="start()">Play</button>
-  }
+  <div class="head">
+    <div>
+      <h2>{{ d.label }}</h2>
+      <p class="muted small desc">{{ d.description }}</p>
+    </div>
+    @if (playing()) {
+      <span class="live small"><span class="live-dot"></span>Live</span>
+    } @else {
+      <button type="button" class="btn primary sm" (click)="start()">Play</button>
+    }
+  </div>
 
   <div class="params">
     @for (p of d.params; track p.key) {
@@ -15,7 +21,7 @@
         @switch (p.type) {
           @case ('number') {
             <input type="range" [id]="'p-' + p.key" [min]="p.min ?? 0" [max]="p.max ?? 100" [step]="p.step ?? 1"
-                   [value]="num(p)" (input)="setNumber(p, $event)">
+                   [value]="num(p)" [style.--fill]="fill(p) + '%'" style="--track-color: var(--text-2)" (input)="setNumber(p, $event)">
           }
           @case ('boolean') {
             <label class="toggle">
@@ -47,10 +53,18 @@
                 </span>
               }
               @if (hexList(p).length < (p.max_items ?? 8)) {
-                <button type="button" class="add" (click)="addColor(p)" aria-label="Add color">+</button>
+                <button type="button" class="add" (click)="addColor(p)" aria-label="Add color">
+                  <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+                </button>
               }
-              <button type="button" class="btn quiet small" (click)="shuffle(p)">Shuffle</button>
-              <button type="button" class="btn quiet small" (click)="randomize(p)">Random</button>
+              <span class="tools">
+              <button type="button" class="btn ghost icon" (click)="shuffle(p)" title="Shuffle order" aria-label="Shuffle">
+                <svg viewBox="0 0 24 24"><path d="M4 7h3l10 10h3M4 17h3l10-10h3M17 4l3 3-3 3M17 14l3 3-3 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <button type="button" class="btn ghost icon" (click)="randomize(p)" title="Random colors" aria-label="Random colors">
+                <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="9" cy="9" r="1.4" fill="currentColor"/><circle cx="15" cy="15" r="1.4" fill="currentColor"/><circle cx="15" cy="9" r="1.4" fill="currentColor"/><circle cx="9" cy="15" r="1.4" fill="currentColor"/></svg>
+              </button>
+              </span>
             </div>
             <div class="palettes">
               @for (pal of palettes; track pal.name) {
@@ -62,23 +76,29 @@
             </div>
           }
         }
-        @if (p.help) { <p class="muted small">{{ p.help }}</p> }
+        @if (p.help) { <p class="faint small">{{ p.help }}</p> }
       </div>
     }
   </div>
 
   <div class="foot">
     @if (d.params.length > 0) {
-      <button type="button" class="btn quiet small" (click)="reset()">Reset</button>
+      <button type="button" class="btn ghost sm" (click)="reset()">Reset</button>
     }
+    <span class="spacer"></span>
     @if (savingPreset()) {
       <form class="save-form" (submit)="$event.preventDefault(); savePreset()">
         <input type="text" placeholder="Name this look" [value]="presetName()" (input)="onPresetNameInput($event)" maxlength="60" autofocus>
-        <button type="submit" class="btn small">Save</button>
-        <button type="button" class="btn quiet small" (click)="savingPreset.set(false)">Cancel</button>
+        <button type="submit" class="btn sm">Save</button>
+        <button type="button" class="btn ghost sm" (click)="savingPreset.set(false)">Cancel</button>
       </form>
     } @else {
-      <button type="button" class="btn quiet small" (click)="savingPreset.set(true)">Save as preset</button>
+      <button type="button" class="btn sm" (click)="savingPreset.set(true)">
+        <svg viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1.1 5.9L12 16.9l-5.3 2.8 1.1-5.9-4.3-4.1 5.9-.8z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+        Save preset
+      </button>
     }
   </div>
+} @else {
+  <p class="muted">Pick an animation to customize it.</p>
 }

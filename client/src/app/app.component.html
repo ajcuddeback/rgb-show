@@ -1,45 +1,60 @@
-<header class="top">
-  <div>
-    <h1>Tree Lights</h1>
-    <p class="muted small status">
-      @if (svc.offline()) { Can't reach the tree }
-      @else if (svc.power()) { Playing {{ svc.currentDef()?.label }} }
-      @else { Off }
-    </p>
-  </div>
-  <app-power-toggle />
-</header>
-
 @if (svc.error(); as err) {
   <div class="notice" role="alert">
     <span>{{ err }}</span>
-    <button type="button" class="btn quiet" (click)="svc.dismissError()">Dismiss</button>
+    <button type="button" class="btn ghost sm" (click)="svc.dismissError()">Dismiss</button>
   </div>
 }
 
 @if (svc.loading()) {
-  <p class="muted loading">Connecting…</p>
+  <div class="center muted">Connecting to the tree…</div>
 } @else if (svc.offline() && svc.animations().length === 0) {
-  <div class="offline">
+  <div class="center offline card">
     <h2>The tree isn't answering</h2>
     <p class="muted">Make sure the server is running on the Pi.</p>
-    <button type="button" class="btn" (click)="retry()">Try again</button>
+    <button type="button" class="btn primary" (click)="retry()">Try again</button>
   </div>
 } @else {
   <main class="layout">
     <aside class="side">
-      <div>
-        <app-tree-preview />
-        <app-tree-setup />
-      </div>
-      <app-global-controls />
-      <section class="presets">
-        <h3>Presets</h3>
+      <app-tree-preview />
+      <section class="card pad">
+        <app-global-controls />
+      </section>
+      <section class="card pad">
+        <div class="section-head"><h3>Presets</h3><span class="faint small">{{ svc.presets().length }}</span></div>
         <app-presets-panel />
       </section>
+      <app-tree-setup />
     </aside>
-    <section class="list">
+
+    <section class="browse">
       <app-animation-grid />
     </section>
+
+    <aside class="panel desktop-only">
+      <div class="card pad sticky">
+        <app-param-editor />
+      </div>
+    </aside>
   </main>
+
+  <!-- Phones & tablets: settings live in a sheet -->
+  <div class="sheet mobile-only" [class.open]="sheetOpen()">
+    <div class="scrim" (click)="sheetOpen.set(false)"></div>
+    <div class="sheet-card">
+      <button type="button" class="handle" (click)="sheetOpen.set(!sheetOpen())" [attr.aria-expanded]="sheetOpen()" aria-label="Toggle settings">
+        <span class="grab"></span>
+      </button>
+      <div class="sheet-peek" (click)="sheetOpen.set(!sheetOpen())">
+        <span class="peek-dots">
+          @for (c of peekColors(); track $index) { <span class="dot" [style.background]="c"></span> }
+        </span>
+        <span class="peek-title">{{ svc.selectedDef()?.label ?? 'Pick an animation' }}</span>
+        <span class="muted small">{{ sheetOpen() ? 'Close' : 'Customize' }}</span>
+      </div>
+      <div class="sheet-body">
+        <app-param-editor />
+      </div>
+    </div>
+  </div>
 }

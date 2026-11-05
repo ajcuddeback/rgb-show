@@ -11,11 +11,16 @@ import { RgbService } from '../../services/rgb.service';
   standalone: true,
   template: `
     @if (!open()) {
-      <button type="button" class="btn quiet small opener" (click)="start()">
-        Set up tree · {{ svc.config()?.numPixels }} lights, {{ svc.config()?.rings?.length }} wraps
+      <button type="button" class="opener card" (click)="start()">
+        <span>
+          <span class="t">Tree setup</span>
+          <span class="muted small">{{ svc.config()?.numPixels }} lights · {{ svc.config()?.rings?.length }} wraps</span>
+        </span>
+        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
     } @else {
-      <form class="setup" (submit)="$event.preventDefault(); save()">
+      <form class="setup card" (submit)="$event.preventDefault(); save()">
+        <h2>Tree setup</h2>
         <div class="field">
           <label for="count">Lights on the strand</label>
           <input id="count" type="number" min="1" max="5000" [value]="count()" (input)="setCount($event)">
@@ -24,7 +29,7 @@ import { RgbService } from '../../services/rgb.service';
         <div class="field">
           <div class="label-row">
             <label>Lights per wrap, bottom to top</label>
-            <button type="button" class="btn quiet small" (click)="even()">Even cone</button>
+            <button type="button" class="btn ghost sm" (click)="even()">Even cone</button>
           </div>
           <ol class="wraps">
             @for (r of rings(); track $index) {
@@ -38,7 +43,7 @@ import { RgbService } from '../../services/rgb.service';
             }
           </ol>
           <div class="row">
-            <button type="button" class="btn quiet small" (click)="addRing()">+ Add a wrap on top</button>
+            <button type="button" class="btn ghost sm" (click)="addRing()">+ Add a wrap on top</button>
             <span class="spacer"></span>
             <span class="small" [class.bad]="total() !== count()" [class.muted]="total() === count()">
               {{ total() }} of {{ count() }} lights placed
@@ -48,27 +53,33 @@ import { RgbService } from '../../services/rgb.service';
 
         <div class="row">
           <button type="submit" class="btn primary" [disabled]="total() !== count() || saving()">Save</button>
-          <button type="button" class="btn quiet" (click)="open.set(false)">Cancel</button>
+          <button type="button" class="btn ghost" (click)="open.set(false)">Cancel</button>
         </div>
-        <p class="muted small">Count the lights on each wrap starting at the bottom. Close enough is fine — the spiral, climb and snow effects just need to know which lights sit at the same height.</p>
+        <p class="faint small">Count the lights on each wrap starting at the bottom. Close enough is fine — the spiral, climb and snow effects just need to know which lights sit at the same height.</p>
       </form>
     }
   `,
   styles: [`
     :host { display: block; }
-    .opener { margin-left: -8px; }
-    .setup { display: grid; gap: 14px; }
+    .opener {
+      width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer;
+      padding: 14px 16px; text-align: left; color: var(--text-2);
+      > span { display: flex; flex-direction: column; }
+      .t { color: var(--text); font-weight: 500; }
+      &:hover { background: var(--surface-2); }
+    }
+    .setup { display: grid; gap: 14px; padding: 18px; }
     .field { display: grid; gap: 6px; }
-    label { font-size: 0.9rem; }
+    label { font-size: 0.9rem; font-weight: 500; }
     .label-row { display: flex; justify-content: space-between; align-items: center; }
     input[type="number"] {
-      font: inherit; color: var(--ink); background: transparent; border: 0; border-bottom: 1px solid var(--line-strong);
-      padding: 4px 2px; width: 72px; border-radius: 0;
-      &:focus { outline: none; border-bottom-color: var(--ink); }
+      font: inherit; color: var(--text); background: var(--surface-2); border: 1px solid var(--border-2);
+      padding: 6px 10px; width: 76px; border-radius: 10px;
+      &:focus { outline: none; border-color: var(--accent); }
     }
-    .wraps { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 14px; }
+    .wraps { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 14px; }
     .wraps li { display: flex; align-items: center; gap: 6px; }
-    .x { border: 0; background: transparent; color: var(--ink-3); cursor: pointer; font-size: 1rem; padding: 2px 4px; &:hover { color: var(--red); } }
+    .x { border: 0; background: transparent; color: var(--text-3); cursor: pointer; font-size: 1rem; padding: 2px 4px; &:hover { color: var(--red); } }
     .bad { color: var(--red); }
   `],
 })

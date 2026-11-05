@@ -22,8 +22,7 @@ def test_change_pixel_count_rescales_wraps_and_strand(client, controller):
     # animation restarted on the new strand
     state = res.get_json()
     assert state["power"] and state["animation"] == "solid"
-    frame = client.get("/api/frame").get_json()["pixels"]
-    assert len(frame) == 150
+    assert client.get("/api/frame").get_json()["n"] == 150
 
 
 def test_layout_validation(client):

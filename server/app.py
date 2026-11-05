@@ -170,7 +170,10 @@ def create_app(config: Config = None) -> Flask:
 
     @app.get("/api/frame")
     def get_frame():
-        return jsonify({"pixels": [list(c) for c in controller.get_frame()],
+        # Compact: one hex string ("rrggbb" per pixel) is ~60% smaller than a JSON array of arrays,
+        # which matters because the live preview polls this several times a second.
+        frame = controller.get_frame()
+        return jsonify({"n": len(frame), "hex": "".join("%02x%02x%02x" % c for c in frame),
                         "brightness": controller.brightness})
 
     # --------------------------------------------------------------- presets

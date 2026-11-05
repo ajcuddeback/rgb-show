@@ -44,6 +44,11 @@ export class ParamEditorComponent {
     return Array.isArray(v) ? v.map(rgbToHex) : [];
   }
 
+  fill(p: ParamSchema): number {
+    const min = p.min ?? 0, max = p.max ?? 100;
+    return max > min ? Math.round(((this.num(p) - min) / (max - min)) * 100) : 0;
+  }
+
   format(p: ParamSchema): string {
     const v = this.num(p);
     const step = p.step ?? 1;
