@@ -1,0 +1,102 @@
+{
+  "configVersion": 1,
+  "timestamp": 1793846776066,
+  "index": "/index.html",
+  "assetGroups": [
+    {
+      "name": "app",
+      "installMode": "prefetch",
+      "updateMode": "prefetch",
+      "cacheQueryOptions": {
+        "ignoreVary": true
+      },
+      "urls": [
+        "/favicon.ico",
+        "/index.html",
+        "/main.2c7756ab84a2a1c1.js",
+        "/manifest.webmanifest",
+        "/polyfills.474ab8ed58ae09da.js",
+        "/runtime.c96826ae13d8d7dc.js",
+        "/styles.22366f1cda6b4fbf.css"
+      ],
+      "patterns": []
+    },
+    {
+      "name": "assets",
+      "installMode": "lazy",
+      "updateMode": "prefetch",
+      "cacheQueryOptions": {
+        "ignoreVary": true
+      },
+      "urls": [
+        "/assets/icons/apple-touch-icon.png",
+        "/assets/icons/icon-128x128.png",
+        "/assets/icons/icon-144x144.png",
+        "/assets/icons/icon-152x152.png",
+        "/assets/icons/icon-192x192.png",
+        "/assets/icons/icon-384x384.png",
+        "/assets/icons/icon-512x512.png",
+        "/assets/icons/icon-72x72.png",
+        "/assets/icons/icon-96x96.png",
+        "/assets/icons/icon.svg",
+        "/assets/icons/maskable-192x192.png",
+        "/assets/icons/maskable-512x512.png",
+        "/assets/images/lights.svg"
+      ],
+      "patterns": []
+    }
+  ],
+  "dataGroups": [
+    {
+      "name": "api",
+      "patterns": [
+        "\\/api\\/.*"
+      ],
+      "strategy": "freshness",
+      "maxSize": 0,
+      "maxAge": 0,
+      "timeoutMs": 0,
+      "cacheQueryOptions": {
+        "ignoreVary": true
+      },
+      "version": 1
+    }
+  ],
+  "hashTable": {
+    "/assets/icons/apple-touch-icon.png": "86f8cc587328cea76f8a1564c195a580add00692",
+    "/assets/icons/icon-128x128.png": "737676aec917df43706106b3007d9b939eb2db5a",
+    "/assets/icons/icon-144x144.png": "174df9fd7e282d69bb8b80788f0d8450f4141a6c",
+    "/assets/icons/icon-152x152.png": "aee14fe2856ca0a819debee56c82fcbcf4784fed",
+    "/assets/icons/icon-192x192.png": "dc607226ae630778ad16ad4ae0969a82f4a6652e",
+    "/assets/icons/icon-384x384.png": "c8b7c7eb659931d06aa342d99ece2b0f4b6b413b",
+    "/assets/icons/icon-512x512.png": "e5273bda8c27a1d2776f7ea09b2b4cad6ed9d9fa",
+    "/assets/icons/icon-72x72.png": "f66c4c4d11b790aaaf03d738cada0518607cf880",
+    "/assets/icons/icon-96x96.png": "b1db4b11a8b1dac54e8ecbe63bbe999d21c7dfcd",
+    "/assets/icons/icon.svg": "820c80aed44d63d4edccae8acbef43d90df94b2e",
+    "/assets/icons/maskable-192x192.png": "df825aed3ef84ea3fff5f6c3b7fcc89c4351c803",
+    "/assets/icons/maskable-512x512.png": "05e27149dba99e51dc085742dc3b2ccd0ddfad72",
+    "/assets/images/lights.svg": "aaeb23aaa78beb427c88ba617f37d3387257d05d",
+    "/favicon.ico": "22f6a4a3bcaafafb0254e0f2fa4ceb89e505e8b2",
+    "/index.html": "fad48dd09db04089ccae493c0e2ce8d2ebdfc2d2",
+    "/main.2c7756ab84a2a1c1.js": "7657806c949c968390f2d534514879def05453e0",
+    "/manifest.webmanifest": "efc5015dacff11f2eacaa3b11991905212dfe9d1",
+    "/polyfills.474ab8ed58ae09da.js": "27650507b96d59f3ac690d8996a942655f6c0a7b",
+    "/runtime.c96826ae13d8d7dc.js": "4f338e0b614ac97e378d444330e595acdbafbb52",
+    "/styles.22366f1cda6b4fbf.css": "17ddeea15ab7bfb2b58dae2cbcf8a38e25753c9d"
+  },
+  "navigationUrls": [
+    {
+      "positive": true,
+      "regex": "^\\/.*$"
+    },
+    {
+      "positive": false,
+      "regex": "^\\/(?:.+\\/)?[^/]*\\.[^/]*$"
+    },
+    {
+      "positive": false,
+      "regex": "^\\/api\\/.*$"
+    }
+  ],
+  "navigationRequestStrategy": "performance"
+}

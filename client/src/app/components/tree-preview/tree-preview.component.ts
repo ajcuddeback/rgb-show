@@ -12,21 +12,13 @@ interface Dot { x: number; y: number; depth: number; r: number; }
   selector: 'app-tree-preview',
   standalone: true,
   template: `
-    <div class="wrap">
-      <canvas #canvas></canvas>
-      <div class="caption">
-        @if (svc.config(); as cfg) {
-          <span>{{ cfg.numPixels }} lights · {{ cfg.rings.length }} wraps</span>
-          @if (cfg.simulated) { <span class="sim">simulated</span> }
-        }
-      </div>
-    </div>
+    <canvas #canvas></canvas>
+    @if (svc.config()?.simulated) { <p class="muted small sim">Simulated — no strand connected</p> }
   `,
   styles: [`
-    .wrap { display: flex; flex-direction: column; align-items: center; }
-    canvas { width: 100%; max-width: 300px; aspect-ratio: 3 / 4; display: block; }
-    .caption { display: flex; gap: 8px; color: var(--muted); font-size: 0.75rem; margin-top: 4px; }
-    .sim { color: var(--accent-2); }
+    :host { display: block; }
+    canvas { width: 100%; max-width: 280px; aspect-ratio: 3 / 4; display: block; margin: 0 auto; }
+    .sim { text-align: center; margin-top: 4px; }
   `],
 })
 export class TreePreviewComponent implements AfterViewInit, OnDestroy {
@@ -134,16 +126,20 @@ export class TreePreviewComponent implements AfterViewInit, OnDestroy {
     const W = canvas.width, H = canvas.height;
     ctx.clearRect(0, 0, W, H);
 
-    // Tree silhouette
+    // Tree silhouette, colored from the theme so it works on paper and dark
+    const css = getComputedStyle(document.documentElement);
+    const treeColor = css.getPropertyValue('--tree').trim() || '#2a4d33';
+    const trunkColor = css.getPropertyValue('--trunk').trim() || '#6b4a2c';
+    const dark = matchMedia('(prefers-color-scheme: dark)').matches;
     const top = H * 0.07, base = H * 0.88, cx = W / 2, R = W * 0.46;
-    ctx.fillStyle = '#0d2a1c';
+    ctx.fillStyle = treeColor;
     ctx.beginPath();
     ctx.moveTo(cx, top);
     ctx.lineTo(cx + R, base);
     ctx.quadraticCurveTo(cx, base + H * 0.04, cx - R, base);
     ctx.closePath();
     ctx.fill();
-    ctx.fillStyle = '#4a2f1a';
+    ctx.fillStyle = trunkColor;
     ctx.fillRect(cx - W * 0.05, base + H * 0.015, W * 0.1, H * 0.07);
 
     const frame = this.frame;
@@ -164,9 +160,14 @@ export class TreePreviewComponent implements AfterViewInit, OnDestroy {
         ctx.beginPath(); ctx.arc(d.x, d.y, d.r * 3.2, 0, Math.PI * 2); ctx.fill();
         ctx.fillStyle = `rgba(${Math.min(255, r + 60)},${Math.min(255, g + 60)},${Math.min(255, b + 60)},${depthFade})`;
       } else {
-        ctx.fillStyle = `rgba(255,255,255,${0.06 * depthFade})`;
+        ctx.fillStyle = dark ? `rgba(255,255,255,${0.08 * depthFade})` : `rgba(0,0,0,${0.18 * depthFade})`;
       }
       ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2); ctx.fill();
+      if (lit) {
+        ctx.lineWidth = Math.max(1, d.r * 0.25);
+        ctx.strokeStyle = `rgba(0,0,0,${0.35 * depthFade})`;
+        ctx.stroke();
+      }
     }
   }
 }

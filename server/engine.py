@@ -15,6 +15,8 @@ from typing import Any, Dict, Optional
 
 from animations import registry
 from animations.base import Animation
+from config import scale_rings, DEFAULT_RING_PROPORTIONS
+from tree import TreeLayout
 
 log = logging.getLogger(__name__)
 
@@ -101,6 +103,38 @@ class AnimationEngine:
         with self._lock:
             self._stop_current()
 
+    # ----------------------------------------------------------------- layout
+    def layout(self) -> dict:
+        return {"numPixels": self.controller.num_pixels, "rings": list(self.tree.rings), "layout": self.config.layout}
+
+    def set_layout(self, num_pixels: Optional[int] = None, rings: Optional[list] = None, persist: bool = True) -> dict:
+        """Change the pixel count and/or wraps at runtime. Restarts the current animation if one is playing."""
+        with self._lock:
+            n = int(num_pixels) if num_pixels is not None else self.controller.num_pixels
+            if not 1 <= n <= 5000:
+                raise ValueError("Light count must be between 1 and 5000")
+            if rings is None:
+                # keep the current wrap proportions, rescaled to the new count
+                base = list(self.tree.rings) if self.tree.n == self.controller.num_pixels else DEFAULT_RING_PROPORTIONS
+                rings = scale_rings(base, n)
+            rings = [int(r) for r in rings]
+            if not rings or any(r < 1 for r in rings):
+                raise ValueError("Every wrap needs at least one light")
+            if sum(rings) != n:
+                raise ValueError(f"Wraps add up to {sum(rings)} lights but the strand has {n}")
+
+            was_on = self.power and self._animation is not None
+            self._stop_current()
+            self.controller.resize(n)
+            self.config.num_pixels = n
+            self.config.rings = rings
+            self.tree = TreeLayout(rings)
+            if was_on and self.current_name:
+                self.start(self.current_name, self.current_params, persist=False)
+        if persist:
+            self.save()
+        return self.layout()
+
     # ---------------------------------------------------------------- internal
     def _stop_current(self) -> None:
         animation, thread = self._animation, self._thread
@@ -124,6 +158,7 @@ class AnimationEngine:
             "speed": self.speed,
             "brightness": self.controller.brightness,
             "power": self.power,
+            "layout": {"numPixels": self.controller.num_pixels, "rings": list(self.tree.rings)},
         }
         try:
             tmp = path + ".tmp"
@@ -144,6 +179,12 @@ class AnimationEngine:
             log.warning("Could not read state file %s: %s", path, exc)
             return
         try:
+            layout = data.get("layout") or {}
+            if layout.get("numPixels") and layout.get("rings"):
+                try:
+                    self.set_layout(layout["numPixels"], layout["rings"], persist=False)
+                except ValueError as exc:
+                    log.warning("Ignoring saved layout: %s", exc)
             if "brightness" in data:
                 self.controller.change_brightness(float(data["brightness"]))
             if "speed" in data:

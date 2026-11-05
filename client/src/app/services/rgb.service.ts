@@ -152,6 +152,17 @@ export class RgbService {
     await this.post('/api/power', { on }, true);
   }
 
+  async setLayout(numPixels: number, rings: number[]): Promise<boolean> {
+    try {
+      const s = await firstValueFrom(this.http.put<RgbState>('/api/layout', { numPixels, rings }));
+      this.applyState(s, false);
+      return true;
+    } catch (e) {
+      this.fail(e as HttpErrorResponse);
+      return false;
+    }
+  }
+
   // ----------------------------------------------------------------- presets
   async savePreset(name: string): Promise<void> {
     const animation = this.selected();

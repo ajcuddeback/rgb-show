@@ -1,23 +1,23 @@
 @for (group of svc.categories(); track group.name) {
   <section class="group">
     <h3>{{ group.name }}</h3>
-    <div class="grid">
+    <ul>
       @for (def of group.items; track def.name) {
-        <button type="button" class="card"
-                [class.playing]="isPlaying(def)"
-                [class.selected]="isSelected(def)"
-                (click)="play(def)"
-                [attr.aria-pressed]="isPlaying(def)">
-          <span class="chip" [style.background]="chip(def)"></span>
-          <span class="body">
-            <span class="title">
-              {{ def.label }}
-              @if (isPlaying(def)) { <span class="live">LIVE</span> }
+        <li [class.open]="isSelected(def)" [class.playing]="isPlaying(def)">
+          <button type="button" class="row-btn" (click)="play(def)" [attr.aria-expanded]="isSelected(def)">
+            <span class="dots" aria-hidden="true">
+              @for (c of previewColors(def); track $index) { <span class="dot" [style.background]="c"></span> }
             </span>
-            <span class="desc">{{ def.description }}</span>
-          </span>
-        </button>
+            <span class="name">{{ def.label }}</span>
+            @if (isPlaying(def)) { <span class="now muted small">playing</span> }
+          </button>
+          @if (isSelected(def)) {
+            <div class="settings">
+              <app-param-editor />
+            </div>
+          }
+        </li>
       }
-    </div>
+    </ul>
   </section>
 }

@@ -7,6 +7,8 @@ Flask + Python on a Raspberry Pi drives the lights; a small Angular app (pre-bui
 - **Every animation is customizable** — colors (with palettes), speeds, densities, directions — and changes apply **live** while it plays.
 - **Live preview** of the tree in the browser, mirroring exactly what the strand is showing.
 - **Presets**: save and recall your favorite looks.
+- **Installable**: it's a PWA — add it to your phone's home screen and it opens like an app, full screen, and updates itself when you deploy.
+- **Set up in the app**: light count and lights-per-wrap are edited in the UI, not in config files.
 - **Survives reboots**: last animation, brightness and speed are restored on boot.
 - **Home Assistant** integration: shows up as a light with every animation as an effect, plus presets and speed. One service, zero HA config.
 - **Runs anywhere**: without NeoPixel hardware the server falls back to a simulator, so you can develop on a laptop.
@@ -53,9 +55,9 @@ All settings are environment variables. For the systemd service, edit them in
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
-| `RGB_NUM_PIXELS` | `100` | Number of lights on the strand |
+| `RGB_NUM_PIXELS` | `100` | Number of lights on the strand *(first-boot default — change it in the app under “Set up tree”)* |
 | `RGB_PIN` | `D18` | `board` pin name the data line is on (`D18`, `D12`, `D21`, …) |
-| `RGB_TREE_RINGS` | auto | Lights per wrap, **bottom → top**, comma-separated, e.g. `32,26,20,14,8` (the default). Must sum to `RGB_NUM_PIXELS` (it's normalized if not). Unset = a cone layout is synthesized from the pixel count. |
+| `RGB_TREE_RINGS` | auto | Lights per wrap, **bottom → top**, comma-separated, e.g. `32,26,20,14,8` (the default). Must sum to `RGB_NUM_PIXELS` (it's normalized if not). Unset = a cone layout is synthesized from the pixel count. *(First-boot default — edit wraps in the app.)* |
 | `RGB_LAYOUT` | `tree` | `tree` (spiral on a cone) or `strand` (straight line, e.g. a roofline) |
 | `RGB_BRIGHTNESS` | `0.1` | Startup brightness 0–1 (overridden by the saved state once you change it in the UI) |
 | `RGB_PIXEL_ORDER` | `RGB` | Color order of your strand: `RGB`, `GRB`, `BRG`, … If red shows as green, change this. |
@@ -68,9 +70,10 @@ All settings are environment variables. For the systemd service, edit them in
 
 ### Mapping your tree
 
-Count how many lights are on each wrap starting at the bottom and set `RGB_TREE_RINGS`.
-The spiral/climb/snow/fireworks effects use this to know which lights are at the same height and
-which side of the tree they're on. Close enough is fine.
+In the app, tap **Set up tree** under the preview: enter the number of lights and how many sit on each
+wrap from the bottom up (or hit *Even cone* to distribute them). The strand is reconfigured live and the
+layout is saved on the Pi, overriding the env defaults above. The spiral/climb/snow/fireworks effects use
+this to know which lights are at the same height and which side of the tree they're on. Close enough is fine.
 
 ## Using the app
 
@@ -79,7 +82,8 @@ which side of the tree they're on. Close enough is fine.
 - Color lists have palette chips (Classic, Candy Cane, Winter, Aurora, …), `+` to add, `×` to remove, shuffle and random buttons.
 - **Brightness** and **Speed** are global. Speed is a multiplier (0.25×–4×) applied on top of each animation's own tempo.
 - **Save as preset** stores the current animation + settings on the Pi.
-- The power toggle turns the lights off and remembers what was playing, so toggling back on resumes it.
+- The power button turns the lights off and remembers what was playing, so pressing it again resumes.
+- **Install it**: on iPhone, Share → *Add to Home Screen*; on Android/desktop Chrome, use the install icon in the address bar. Installed copies pick up new deploys automatically on next open. (Chrome's install prompt needs HTTPS or `localhost`; iOS Add-to-Home-Screen works over plain HTTP too.)
 
 ## Home Assistant
 
@@ -153,7 +157,8 @@ npm start                              # dev server on :4200, proxies /api to :5
 npm run build                          # production build straight into ../templates
 ```
 
-**Commit the rebuilt `templates/` folder** — that's what the Pi serves.
+**Commit the rebuilt `templates/` folder** — that's what the Pi serves. The build includes the service worker
+(`ngsw-worker.js`, `ngsw.json`); the included nginx config and Flask both serve those with `no-cache` so installed apps update.
 
 ### Adding an animation
 
@@ -190,6 +195,7 @@ Param types: `color`, `colors`, `number`, `select`, `boolean`.
 | GET | `/api/animations` | | All animations with their param schemas |
 | POST | `/api/animations/<name>/start` | `{"params": {...}}` | Start an animation (missing params use defaults) |
 | PATCH | `/api/params` | `{"params": {...}}` | Live-update the running animation |
+| GET/PUT | `/api/layout` | `{"numPixels": 100, "rings": [32,26,20,14,8]}` | Read / change the strand length and wraps (live, persisted) |
 | POST | `/api/power` | `{"on": true}` | Off remembers; on resumes |
 | POST | `/api/brightness` | `{"brightness": 0.3}` | 0–1 |
 | POST | `/api/speed` | `{"speed": 1.5}` | Global multiplier |

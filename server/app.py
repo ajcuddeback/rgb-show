@@ -11,6 +11,7 @@
 
 import atexit
 import logging
+import mimetypes
 import os
 
 from flask import Flask, jsonify, request, send_from_directory, abort
@@ -26,6 +27,8 @@ from animations import registry
 logging.basicConfig(level=os.environ.get("RGB_LOG_LEVEL", "INFO"),
                     format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 log = logging.getLogger("rgb-show")
+
+mimetypes.add_type("application/manifest+json", ".webmanifest")
 
 TEMPLATES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "templates")
 
@@ -43,8 +46,7 @@ def create_app(config: Config = None) -> Flask:
 
     app = Flask(__name__, static_folder=None)
     app.config["JSON_SORT_KEYS"] = False
-    app.extensions["rgb"] = {"config": config, "controller": controller, "tree": tree,
-                             "engine": engine, "presets": presets}
+    app.extensions["rgb"] = {"config": config, "controller": controller, "engine": engine, "presets": presets}
 
     log.info("rgb-show: %d pixels on %s, rings=%s, simulated=%s",
              config.num_pixels, config.pin_name, tree.rings, controller.simulated)
@@ -60,7 +62,10 @@ def create_app(config: Config = None) -> Flask:
             abort(404)
         full = os.path.join(TEMPLATES_DIR, path)
         if os.path.isfile(full):
-            return send_from_directory(TEMPLATES_DIR, path)
+            res = send_from_directory(TEMPLATES_DIR, path)
+            if path in ("ngsw-worker.js", "ngsw.json", "manifest.webmanifest"):
+                res.headers["Cache-Control"] = "no-cache"   # the service worker must always see the latest
+            return res
         # Unknown paths fall back to the SPA shell
         return send_from_directory(TEMPLATES_DIR, "index.html")
 
@@ -73,8 +78,24 @@ def create_app(config: Config = None) -> Flask:
 
     def full_state() -> dict:
         s = engine.state()
-        s["config"] = config.public()
+        s["config"] = {**config.public(), **engine.layout()}
         return s
+
+    @app.get("/api/layout")
+    def get_layout():
+        return jsonify(engine.layout())
+
+    @app.put("/api/layout")
+    def set_layout():
+        data = body()
+        rings = data.get("rings")
+        if rings is not None and (not isinstance(rings, list) or not all(isinstance(r, (int, float)) for r in rings)):
+            abort(400, description="'rings' must be a list of numbers (lights per wrap, bottom to top)")
+        try:
+            engine.set_layout(data.get("numPixels"), rings)
+        except (ValueError, TypeError) as exc:
+            abort(400, description=str(exc))
+        return jsonify(full_state())
 
     @app.get("/api/state")
     def get_state():

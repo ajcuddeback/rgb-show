@@ -63,7 +63,34 @@ class NeoPixelController:
         # The last frame handed to show_frame, *before* gamma. Used for the live
         # preview in the UI so what the browser draws matches the intended colors.
         self.last_frame: List[Color] = [(0, 0, 0)] * num_pixels
+        self.pixel_order = pixel_order
+        self.force_simulate = simulate
         self.pixels = self._open_pixels(pin_name, pixel_order, simulate)
+
+    def resize(self, num_pixels: int) -> None:
+        """Re-open the strand with a different pixel count (used when the layout is edited in the UI)."""
+        num_pixels = int(num_pixels)
+        if num_pixels < 1:
+            raise ValueError("num_pixels must be >= 1")
+        with self._lock:
+            if num_pixels == self.num_pixels:
+                return
+            old = self.pixels
+            try:
+                old.fill((0, 0, 0))
+                old.show()
+            except Exception:
+                pass
+            deinit = getattr(old, "deinit", None)
+            if callable(deinit):
+                try:
+                    deinit()
+                except Exception as exc:  # pragma: no cover - hardware specific
+                    log.warning("deinit of old strand failed: %s", exc)
+            self.num_pixels = num_pixels
+            self.last_frame = [(0, 0, 0)] * num_pixels
+            self.simulated = False
+            self.pixels = self._open_pixels(self.pin_name, self.pixel_order, self.force_simulate)
 
     # ------------------------------------------------------------------ setup
     def _open_pixels(self, pin_name: str, pixel_order: str, simulate: bool):

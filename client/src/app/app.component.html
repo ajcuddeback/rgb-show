@@ -1,71 +1,45 @@
 <header class="top">
-  <div class="brand">
-    <span class="logo" aria-hidden="true">🎄</span>
-    <div>
-      <h1>Tree Lights</h1>
-      <p class="muted">
-        @if (svc.offline()) { <span class="offline">● offline</span> }
-        @else if (svc.power()) { Now playing · {{ svc.currentDef()?.label }} }
-        @else { Lights are off }
-      </p>
-    </div>
+  <div>
+    <h1>Tree Lights</h1>
+    <p class="muted small status">
+      @if (svc.offline()) { Can't reach the tree }
+      @else if (svc.power()) { Playing {{ svc.currentDef()?.label }} }
+      @else { Off }
+    </p>
   </div>
   <app-power-toggle />
 </header>
 
 @if (svc.error(); as err) {
-  <div class="toast" role="alert">
+  <div class="notice" role="alert">
     <span>{{ err }}</span>
-    <button type="button" class="btn ghost small" (click)="svc.dismissError()">Dismiss</button>
+    <button type="button" class="btn quiet" (click)="svc.dismissError()">Dismiss</button>
   </div>
 }
 
 @if (svc.loading()) {
-  <div class="loading muted">Connecting to the tree…</div>
+  <p class="muted loading">Connecting…</p>
 } @else if (svc.offline() && svc.animations().length === 0) {
-  <div class="panel offline-panel">
-    <h2>Can't reach the tree</h2>
-    <p class="muted">The server isn't responding. Make sure it's running on the Pi, then try again.</p>
-    <button type="button" class="btn primary" (click)="retry()">Retry</button>
+  <div class="offline">
+    <h2>The tree isn't answering</h2>
+    <p class="muted">Make sure the server is running on the Pi.</p>
+    <button type="button" class="btn" (click)="retry()">Try again</button>
   </div>
 } @else {
   <main class="layout">
     <aside class="side">
-      <section class="panel">
+      <div>
         <app-tree-preview />
-      </section>
-      <section class="panel">
-        <div class="panel-title"><h2>Controls</h2></div>
-        <app-global-controls />
-      </section>
-      <section class="panel">
-        <div class="panel-title"><h2>Presets</h2><span class="muted count">{{ svc.presets().length }}</span></div>
+        <app-tree-setup />
+      </div>
+      <app-global-controls />
+      <section class="presets">
+        <h3>Presets</h3>
         <app-presets-panel />
       </section>
     </aside>
-
-    <div class="content">
-      <section class="panel editor desktop-only">
-        <app-param-editor />
-      </section>
-      <section class="grid-section">
-        <div class="panel-title"><h2>Animations</h2><span class="muted count">{{ svc.animations().length }}</span></div>
-        <app-animation-grid />
-      </section>
-    </div>
+    <section class="list">
+      <app-animation-grid />
+    </section>
   </main>
-
-  <!-- Mobile: the editor lives in a bottom sheet so it's always one tap away -->
-  <div class="sheet mobile-only" [class.open]="sheetOpen()">
-    <button type="button" class="sheet-handle" (click)="sheetOpen.set(!sheetOpen())" [attr.aria-expanded]="sheetOpen()">
-      <span class="grab"></span>
-      <span class="sheet-title">
-        {{ sheetOpen() ? 'Hide settings' : 'Customize ' + (svc.selectedDef()?.label ?? '') }}
-      </span>
-      <span class="chev">{{ sheetOpen() ? '▾' : '▴' }}</span>
-    </button>
-    <div class="sheet-body">
-      <app-param-editor />
-    </div>
-  </div>
 }

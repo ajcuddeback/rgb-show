@@ -1,18 +1,8 @@
 @if (def(); as d) {
-  <div class="head">
-    <div>
-      <h2>{{ d.label }}</h2>
-      <p class="muted">{{ d.description }}</p>
-    </div>
-    @if (playing()) {
-      <span class="live-pill"><span class="led"></span> Live — changes apply instantly</span>
-    } @else {
-      <button type="button" class="btn primary" (click)="start()">▶ Play</button>
-    }
-  </div>
+  <p class="muted small desc">{{ d.description }}</p>
 
-  @if (d.params.length === 0) {
-    <p class="muted">This one has no settings — just hit play.</p>
+  @if (!playing()) {
+    <button type="button" class="btn primary play" (click)="start()">Play</button>
   }
 
   <div class="params">
@@ -20,13 +10,11 @@
       <div class="param" [class.wide]="p.type === 'colors'">
         <div class="param-head">
           <label [attr.for]="'p-' + p.key">{{ p.label }}</label>
-          @if (p.type === 'number') { <span class="value">{{ format(p) }}</span> }
+          @if (p.type === 'number') { <span class="muted">{{ format(p) }}</span> }
         </div>
-
         @switch (p.type) {
           @case ('number') {
-            <input type="range" [id]="'p-' + p.key"
-                   [min]="p.min ?? 0" [max]="p.max ?? 100" [step]="p.step ?? 1"
+            <input type="range" [id]="'p-' + p.key" [min]="p.min ?? 0" [max]="p.max ?? 100" [step]="p.step ?? 1"
                    [value]="num(p)" (input)="setNumber(p, $event)">
           }
           @case ('boolean') {
@@ -44,12 +32,9 @@
             </div>
           }
           @case ('color') {
-            <div class="row">
-              <span class="swatch large" [style.background]="hex(p)">
-                <input type="color" [id]="'p-' + p.key" [value]="hex(p)" (input)="setColor(p, $event)" [attr.aria-label]="p.label">
-              </span>
-              <span class="muted mono">{{ hex(p) }}</span>
-            </div>
+            <span class="swatch large" [style.background]="hex(p)">
+              <input type="color" [id]="'p-' + p.key" [value]="hex(p)" (input)="setColor(p, $event)" [attr.aria-label]="p.label">
+            </span>
           }
           @case ('colors') {
             <div class="swatches">
@@ -62,44 +47,38 @@
                 </span>
               }
               @if (hexList(p).length < (p.max_items ?? 8)) {
-                <button type="button" class="btn icon add" (click)="addColor(p)" aria-label="Add color">+</button>
+                <button type="button" class="add" (click)="addColor(p)" aria-label="Add color">+</button>
               }
-              <span class="spacer"></span>
-              <button type="button" class="btn ghost small" (click)="shuffle(p)" title="Shuffle order">⇄</button>
-              <button type="button" class="btn ghost small" (click)="randomize(p)" title="Random colors">🎲</button>
+              <button type="button" class="btn quiet small" (click)="shuffle(p)">Shuffle</button>
+              <button type="button" class="btn quiet small" (click)="randomize(p)">Random</button>
             </div>
             <div class="palettes">
               @for (pal of palettes; track pal.name) {
                 <button type="button" class="chip" [class.active]="paletteActive(p, pal.colors)" (click)="applyPalette(p, pal.colors)">
-                  <span class="dots">
-                    @for (c of pal.colors; track $index) { <span class="dot" [style.background]="c"></span> }
-                  </span>
+                  <span class="dots">@for (c of pal.colors; track $index) { <span class="dot" [style.background]="c"></span> }</span>
                   {{ pal.name }}
                 </button>
               }
             </div>
           }
         }
-        @if (p.help) { <p class="help muted">{{ p.help }}</p> }
+        @if (p.help) { <p class="muted small">{{ p.help }}</p> }
       </div>
     }
   </div>
 
   <div class="foot">
     @if (d.params.length > 0) {
-      <button type="button" class="btn ghost small" (click)="reset()">Reset to defaults</button>
+      <button type="button" class="btn quiet small" (click)="reset()">Reset</button>
     }
-    <span class="spacer"></span>
     @if (savingPreset()) {
       <form class="save-form" (submit)="$event.preventDefault(); savePreset()">
-        <input type="text" placeholder="Preset name" [value]="presetName()" (input)="onPresetNameInput($event)" maxlength="60" autofocus>
-        <button type="submit" class="btn primary small">Save</button>
-        <button type="button" class="btn ghost small" (click)="savingPreset.set(false)">Cancel</button>
+        <input type="text" placeholder="Name this look" [value]="presetName()" (input)="onPresetNameInput($event)" maxlength="60" autofocus>
+        <button type="submit" class="btn small">Save</button>
+        <button type="button" class="btn quiet small" (click)="savingPreset.set(false)">Cancel</button>
       </form>
     } @else {
-      <button type="button" class="btn small" (click)="savingPreset.set(true)">☆ Save as preset</button>
+      <button type="button" class="btn quiet small" (click)="savingPreset.set(true)">Save as preset</button>
     }
   </div>
-} @else {
-  <p class="muted">Pick an animation to customize it.</p>
 }
