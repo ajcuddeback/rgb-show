@@ -1,0 +1,133 @@
+# Home Assistant package for rgb-show WITHOUT an MQTT broker.
+#
+# Prefer the MQTT bridge (deploy/rgb-show-ha.service) if you run Mosquitto:
+# it auto-discovers and updates instantly. This file is the fallback that
+# talks to the REST API directly.
+#
+# Install:
+#   1. In configuration.yaml make sure you have:   homeassistant: { packages: !include_dir_named packages }
+#   2. Copy this file to config/packages/rgb_show_rest.yaml
+#   3. Replace 192.168.7.104 with your Pi's address (or tree.local)
+#   4. Restart Home Assistant  ->  light.christmas_tree appears
+
+rest:
+  - resource: http://192.168.7.104/api/state
+    scan_interval: 5
+    sensor:
+      - name: "Christmas Tree State"
+        unique_id: rgb_show_tree_state
+        value_template: "{{ 'on' if value_json.power else 'off' }}"
+        json_attributes:
+          - animation
+          - params
+          - speed
+          - brightness
+
+  - resource: http://192.168.7.104/api/animations
+    scan_interval: 3600
+    sensor:
+      - name: "Christmas Tree Animations"
+        unique_id: rgb_show_tree_animations
+        value_template: "{{ value_json.animations | count }}"
+        json_attributes:
+          - animations
+
+rest_command:
+  rgb_show_start:
+    url: "http://192.168.7.104/api/animations/{{ name }}/start"
+    method: POST
+    content_type: application/json
+    payload: '{{ {"params": params | default({})} | to_json }}'
+  rgb_show_params:
+    url: "http://192.168.7.104/api/params"
+    method: PATCH
+    content_type: application/json
+    payload: '{{ {"params": params} | to_json }}'
+  rgb_show_power:
+    url: "http://192.168.7.104/api/power"
+    method: POST
+    content_type: application/json
+    payload: '{"on": {{ "true" if on else "false" }}}'
+  rgb_show_brightness:
+    url: "http://192.168.7.104/api/brightness"
+    method: POST
+    content_type: application/json
+    payload: '{"brightness": {{ brightness }}}'
+  rgb_show_speed:
+    url: "http://192.168.7.104/api/speed"
+    method: POST
+    content_type: application/json
+    payload: '{"speed": {{ speed }}}'
+
+light:
+  - platform: template
+    lights:
+      christmas_tree:
+        unique_id: rgb_show_tree_light
+        friendly_name: "Christmas Tree"
+        icon_template: mdi:pine-tree
+        value_template: "{{ is_state('sensor.christmas_tree_state', 'on') }}"
+        level_template: "{{ (state_attr('sensor.christmas_tree_state', 'brightness') | float(0.1) * 255) | round(0) | int }}"
+        effect_list_template: >-
+          {{ state_attr('sensor.christmas_tree_animations', 'animations') | map(attribute='label') | list }}
+        effect_template: >-
+          {% set name = state_attr('sensor.christmas_tree_state', 'animation') %}
+          {% set anims = state_attr('sensor.christmas_tree_animations', 'animations') or [] %}
+          {{ (anims | selectattr('name', 'eq', name) | map(attribute='label') | first) | default(none) }}
+        rgb_template: >-
+          {% set p = state_attr('sensor.christmas_tree_state', 'params') or {} %}
+          {% set c = p.color if p.color is defined else (p.colors[0] if p.colors is defined and p.colors else none) %}
+          {{ (c[0], c[1], c[2]) if c else (255, 255, 255) }}
+        turn_on:
+          - service: rest_command.rgb_show_power
+            data: { on: true }
+          - service: homeassistant.update_entity
+            target: { entity_id: sensor.christmas_tree_state }
+        turn_off:
+          - service: rest_command.rgb_show_power
+            data: { on: false }
+          - service: homeassistant.update_entity
+            target: { entity_id: sensor.christmas_tree_state }
+        set_level:
+          - service: rest_command.rgb_show_brightness
+            data:
+              brightness: "{{ (brightness / 255) | round(3) }}"
+        set_effect:
+          - service: rest_command.rgb_show_start
+            data:
+              name: >-
+                {% set anims = state_attr('sensor.christmas_tree_animations', 'animations') or [] %}
+                {{ anims | selectattr('label', 'eq', effect) | map(attribute='name') | first }}
+          - service: homeassistant.update_entity
+            target: { entity_id: sensor.christmas_tree_state }
+        set_rgb:
+          # Sets the first color of whatever is playing; falls back to Solid Color.
+          - service: rest_command.rgb_show_params
+            data:
+              params: >-
+                {% set p = state_attr('sensor.christmas_tree_state', 'params') or {} %}
+                {% if p.color is defined %}{{ {"color": [r, g, b]} }}
+                {% elif p.colors is defined %}{{ {"colors": [[r, g, b]]} }}
+                {% else %}{{ {} }}{% endif %}
+          - service: homeassistant.update_entity
+            target: { entity_id: sensor.christmas_tree_state }
+
+input_number:
+  christmas_tree_speed:
+    name: Christmas Tree Speed
+    min: 0.25
+    max: 4
+    step: 0.05
+    initial: 1
+    icon: mdi:speedometer
+
+automation:
+  - alias: "Christmas Tree: speed slider"
+    mode: restart
+    trigger:
+      - platform: state
+        entity_id: input_number.christmas_tree_speed
+    action:
+      - service: rest_command.rgb_show_speed
+        data:
+          speed: "{{ states('input_number.christmas_tree_speed') }}"

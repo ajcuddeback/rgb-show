@@ -1,0 +1,24 @@
+# systemd unit for the Home Assistant MQTT bridge (optional).
+#
+#   sudo cp deploy/ha.env.example /etc/rgb-show-ha.env   # then edit MQTT_HOST/USER/PASSWORD
+#   sudo systemctl enable --now rgb-show-ha
+#   journalctl -u rgb-show-ha -f
+#
+# setup.sh installs this file (with the right paths) but does not enable it.
+
+[Unit]
+Description=RGB Show - Home Assistant MQTT bridge
+After=network-online.target rgb-show.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/pi/rgb-show/server
+EnvironmentFile=/etc/rgb-show-ha.env
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/home/pi/rgb-show/server/.venv/bin/python ha_bridge.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

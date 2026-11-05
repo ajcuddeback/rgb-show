@@ -3,11 +3,12 @@
 Control a strand of NeoPixels (WS2811 / WS2812) wrapped around a Christmas tree from your phone.
 Flask + Python on a Raspberry Pi drives the lights; a small Angular app (pre-built, no Node needed on the Pi) is the remote.
 
-- **22 animations** that understand the *shape* of the tree (height, angle, wraps): spirals, climbing rings, falling snow, fireworks that launch up the tree, aurora curtains, a pulsing tree-top star, and more.
+- **33 animations** that understand the *shape* of the tree (height, angle, wraps): spirals, climbing rings, falling snow, fireworks that launch up the tree, aurora curtains, a pulsing tree-top star, glinting ornaments, a rotating beacon, fireflies, icicles, a starry night, and more.
 - **Every animation is customizable** — colors (with palettes), speeds, densities, directions — and changes apply **live** while it plays.
 - **Live preview** of the tree in the browser, mirroring exactly what the strand is showing.
 - **Presets**: save and recall your favorite looks.
 - **Survives reboots**: last animation, brightness and speed are restored on boot.
+- **Home Assistant** integration: shows up as a light with every animation as an effect, plus presets and speed. One service, zero HA config.
 - **Runs anywhere**: without NeoPixel hardware the server falls back to a simulator, so you can develop on a laptop.
 
 ## Hardware
@@ -79,6 +80,57 @@ which side of the tree they're on. Close enough is fine.
 - **Brightness** and **Speed** are global. Speed is a multiplier (0.25×–4×) applied on top of each animation's own tempo.
 - **Save as preset** stores the current animation + settings on the Pi.
 - The power toggle turns the lights off and remembers what was playing, so toggling back on resumes it.
+
+## Home Assistant
+
+### Option A — MQTT bridge (recommended)
+
+A tiny companion service on the Pi (`server/ha_bridge.py`) uses MQTT discovery, so the tree simply
+appears in HA as a device named **Christmas Tree** with:
+
+| Entity | What it does |
+| --- | --- |
+| `light.christmas_tree` | On/off (off remembers, on resumes), brightness, RGB color, and an **effect list of every animation** |
+| `select.christmas_tree_preset` | Apply any preset you saved in the web UI |
+| `number.christmas_tree_speed` | The global speed multiplier |
+| `button.christmas_tree_surprise_me` | Start a random animation |
+
+Requirements: an MQTT broker HA can see (the **Mosquitto** add-on is the usual one) and the MQTT integration enabled in HA.
+
+```bash
+sudo nano /etc/rgb-show-ha.env        # set MQTT_HOST, MQTT_USER, MQTT_PASSWORD
+```
+
+```bash
+sudo systemctl enable --now rgb-show-ha && journalctl -u rgb-show-ha -f
+```
+
+Within a few seconds HA shows the device under Settings → Devices → MQTT. Picking a color in HA sets the
+animation's main color (for multi-color effects, the first color); picking an effect starts that animation
+with its defaults — or with the color you chose, if you set both. State flows back to HA every 2 s and
+instantly after a command, so your dashboards stay in sync with the web UI.
+
+Automations are then plain HA:
+
+```yaml
+- alias: Tree on at dusk
+  trigger: { platform: sun, event: sunset, offset: "-00:30:00" }
+  action:
+    - service: light.turn_on
+      target: { entity_id: light.christmas_tree }
+      data: { effect: "Twinkle", brightness_pct: 40 }
+- alias: Tree off at bedtime
+  trigger: { platform: time, at: "23:30:00" }
+  action:
+    - service: light.turn_off
+      target: { entity_id: light.christmas_tree }
+```
+
+### Option B — REST only (no broker)
+
+`deploy/home-assistant/rgb_show_rest.yaml` is a HA *package* that builds the same `light.christmas_tree`
+from `rest` sensors, `rest_command`s and a template light. Copy it to `config/packages/`, change the IP, restart HA.
+It polls every 5 s, so state in HA lags a little behind the web UI.
 
 ## Developing
 
@@ -157,11 +209,12 @@ curl -X POST http://tree.local/api/animations/twinkle/start -H 'content-type: ap
 
 - `server/app.py` — Flask app and API
 - `server/engine.py` — owns the running animation thread, persistence
+- `server/ha_bridge.py` — optional Home Assistant MQTT bridge
 - `server/tree.py` — pixel → (height, angle, wrap) geometry
 - `server/animations/` — base class, color helpers, registry, `effects/*`
 - `client/` — Angular 17 UI (standalone components + signals)
 - `templates/` — **built** UI, served by Flask
-- `deploy/` — systemd unit and nginx config
+- `deploy/` — systemd units, nginx config, Home Assistant files
 
 ## License
 

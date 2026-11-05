@@ -33,6 +33,8 @@ if grep -qa "Raspberry Pi 5" /proc/device-tree/model 2>/dev/null; then
   sudo "$VENV/bin/python" -m pip install -q --upgrade Adafruit-Blinka-Raspberry-Pi5-Neopixel
 fi
 
+sudo "$VENV/bin/python" -m pip install -q --upgrade -r "$REPO_DIR/server/requirements-ha.txt"
+
 echo "==> Stopping any old gunicorn3 --daemon instance"
 sudo pkill -f "gunicorn3 app:app" 2>/dev/null || true
 
@@ -41,6 +43,14 @@ sed "s#/home/pi/rgb-show#$REPO_DIR#g" "$REPO_DIR/deploy/rgb-show.service" | sudo
 sudo systemctl daemon-reload
 sudo systemctl enable rgb-show >/dev/null
 sudo systemctl restart rgb-show
+
+echo "==> Installing Home Assistant bridge (not enabled)"
+sed "s#/home/pi/rgb-show#$REPO_DIR#g" "$REPO_DIR/deploy/rgb-show-ha.service" | sudo tee /etc/systemd/system/rgb-show-ha.service >/dev/null
+[[ -f /etc/rgb-show-ha.env ]] || sudo cp "$REPO_DIR/deploy/ha.env.example" /etc/rgb-show-ha.env
+sudo systemctl daemon-reload
+if systemctl is-enabled --quiet rgb-show-ha 2>/dev/null; then
+  sudo systemctl restart rgb-show-ha
+fi
 
 if [[ $WITH_NGINX -eq 1 ]]; then
   echo "==> Configuring nginx"
@@ -59,6 +69,11 @@ if curl -fsS http://127.0.0.1:8000/api/state >/dev/null; then
   echo "✅ rgb-show is running."
   [[ $WITH_NGINX -eq 1 ]] && echo "   Open: http://$IP/" || echo "   Open: http://$IP:8000/"
   echo "   Logs: journalctl -u rgb-show -f"
+  if ! systemctl is-enabled --quiet rgb-show-ha 2>/dev/null; then
+    echo
+    echo "   Home Assistant (optional): edit /etc/rgb-show-ha.env with your MQTT broker, then"
+    echo "   sudo systemctl enable --now rgb-show-ha"
+  fi
 else
   echo "❌ Service did not come up. Check: journalctl -u rgb-show -n 50"
   exit 1
