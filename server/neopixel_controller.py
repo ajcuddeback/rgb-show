@@ -67,20 +67,37 @@ class NeoPixelController:
 
     # ------------------------------------------------------------------ setup
     def _open_pixels(self, pin_name: str, pixel_order: str, simulate: bool):
-        if not simulate:
-            try:
-                import board  # type: ignore
-                import neopixel  # type: ignore
+        if simulate:
+            log.info("RGB_SIMULATE is set: using the in-memory pixel simulator")
+            self.simulated = True
+            return SimulatedPixels(self.num_pixels, self.brightness)
+        try:
+            import board  # type: ignore
+            import neopixel  # type: ignore
+        except ImportError as exc:
+            # Off-Pi development: fall back, but say so clearly.
+            log.warning("NeoPixel libraries not installed (%s). Using the simulator. "
+                        "Set RGB_SIMULATE=1 to silence this on a dev machine.", exc)
+            self.simulated = True
+            return SimulatedPixels(self.num_pixels, self.brightness)
 
-                pin = getattr(board, pin_name)
-                order = getattr(neopixel, pixel_order, neopixel.RGB)
-                log.info("Opening %d NeoPixels on %s (%s)", self.num_pixels, pin_name, pixel_order)
-                return neopixel.NeoPixel(pin, self.num_pixels, brightness=self.brightness,
-                                         auto_write=False, pixel_order=order)
-            except Exception as exc:  # ImportError, NotImplementedError off-Pi, permission errors...
-                log.warning("NeoPixel hardware unavailable (%s). Falling back to the simulator.", exc)
-        self.simulated = True
-        return SimulatedPixels(self.num_pixels, self.brightness)
+        # Libraries are present, so this is a real Pi: any failure here is a
+        # deployment problem and must NOT be hidden behind a simulator.
+        pin = getattr(board, pin_name, None)
+        if pin is None:
+            raise RuntimeError(f"RGB_PIN={pin_name!r} is not a pin on this board")
+        order = getattr(neopixel, pixel_order, neopixel.RGB)
+        log.info("Opening %d NeoPixels on %s (%s)", self.num_pixels, pin_name, pixel_order)
+        try:
+            return neopixel.NeoPixel(pin, self.num_pixels, brightness=self.brightness,
+                                     auto_write=False, pixel_order=order)
+        except Exception as exc:
+            raise RuntimeError(
+                f"Could not open the NeoPixel strand on {pin_name}: {exc}\n"
+                "  - Raspberry Pi 5: pip install Adafruit-Blinka-Raspberry-Pi5-Neopixel into server/.venv\n"
+                "  - Must run as root (the systemd unit does)\n"
+                "  - To run without hardware on purpose, set RGB_SIMULATE=1"
+            ) from exc
 
     # --------------------------------------------------------------- commands
     def show_frame(self, frame: Sequence[Color]) -> None:

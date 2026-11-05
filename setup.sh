@@ -27,6 +27,11 @@ VENV="$REPO_DIR/server/.venv"
 [[ -x "$VENV/bin/python" ]] || sudo python3 -m venv --system-site-packages "$VENV"
 sudo "$VENV/bin/python" -m pip install -q --upgrade pip
 sudo "$VENV/bin/python" -m pip install -q --upgrade -r "$REPO_DIR/server/requirements.txt"
+# Raspberry Pi 5 drives NeoPixels through PIO and needs an extra platform library.
+if grep -qa "Raspberry Pi 5" /proc/device-tree/model 2>/dev/null; then
+  echo "==> Raspberry Pi 5 detected: installing the PIO NeoPixel driver"
+  sudo "$VENV/bin/python" -m pip install -q --upgrade Adafruit-Blinka-Raspberry-Pi5-Neopixel
+fi
 
 echo "==> Stopping any old gunicorn3 --daemon instance"
 sudo pkill -f "gunicorn3 app:app" 2>/dev/null || true

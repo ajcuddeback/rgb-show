@@ -12,7 +12,7 @@ Flask + Python on a Raspberry Pi drives the lights; a small Angular app (pre-bui
 
 ## Hardware
 
-- Raspberry Pi (any model with GPIO; Zero W works) with the data line on **GPIO18** (`board.D18`) by default
+- Raspberry Pi (any model with GPIO; Zero W through Pi 5) with the data line on **GPIO18** (`board.D18`) by default. `setup.sh` installs the extra PIO driver a Pi 5 needs automatically.
 - NeoPixel-compatible strand (WS2811 / WS2812 / SK6812). Count and tree layout are configured, not hard-coded.
 - Adequate 5V/12V supply for the strand, common ground with the Pi, ideally a level shifter on the data line.
 
@@ -62,7 +62,7 @@ All settings are environment variables. For the systemd service, edit them in
 | `RGB_FPS` | `30` | Animation frame rate cap |
 | `RGB_AUTOSTART` | `true` | Resume the last animation on boot |
 | `RGB_DATA_DIR` | `server/` | Where `state.json` and `presets.json` are stored |
-| `RGB_SIMULATE` | `false` | Force the in-memory simulator even on a Pi |
+| `RGB_SIMULATE` | `false` | Use the in-memory simulator. Off-Pi the server also falls back to it (with a warning) when the NeoPixel libraries aren't installed. On a Pi where the libraries *are* installed but the strand can't be opened, the service fails loudly instead of pretending. |
 | `RGB_HOST` / `RGB_PORT` | `0.0.0.0` / `5000` | Only used by `python3 app.py` (gunicorn has its own `--bind`) |
 
 ### Mapping your tree
