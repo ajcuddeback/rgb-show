@@ -15,15 +15,18 @@ WITH_NGINX=1
 
 echo "==> Installing system packages"
 sudo apt-get update -qq
-PKGS="python3 python3-pip"
+PKGS="python3 python3-pip python3-venv python3-dev"
 [[ $WITH_NGINX -eq 1 ]] && PKGS="$PKGS nginx"
 sudo apt-get install -y -qq $PKGS >/dev/null
 
-echo "==> Installing Python dependencies"
-# --break-system-packages is needed on Bookworm+ to install into the system
-# interpreter, which is what the systemd unit (running as root) uses.
-sudo python3 -m pip install -q --upgrade --break-system-packages -r "$REPO_DIR/server/requirements.txt" 2>/dev/null \
-  || sudo python3 -m pip install -q --upgrade -r "$REPO_DIR/server/requirements.txt"
+echo "==> Installing Python dependencies into server/.venv"
+# Raspberry Pi OS (Bookworm+) blocks system-wide pip (PEP 668), so we use a venv.
+# --system-site-packages keeps any Adafruit/ws281x libs you already installed
+# with apt or an older sudo pip3 visible inside it.
+VENV="$REPO_DIR/server/.venv"
+[[ -x "$VENV/bin/python" ]] || sudo python3 -m venv --system-site-packages "$VENV"
+sudo "$VENV/bin/python" -m pip install -q --upgrade pip
+sudo "$VENV/bin/python" -m pip install -q --upgrade -r "$REPO_DIR/server/requirements.txt"
 
 echo "==> Stopping any old gunicorn3 --daemon instance"
 sudo pkill -f "gunicorn3 app:app" 2>/dev/null || true

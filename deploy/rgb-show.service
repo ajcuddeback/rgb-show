@@ -8,7 +8,8 @@
 # Logs:    journalctl -u rgb-show -f
 # Restart: sudo systemctl restart rgb-show
 #
-# Adjust WorkingDirectory / ExecStart paths if the repo is not in /home/pi/rgb-show.
+# setup.sh rewrites /home/pi/rgb-show to wherever the repo actually lives and
+# creates server/.venv. Adjust the paths by hand if you install it another way.
 # Tune the lights with Environment= lines (see README "Configuration").
 
 [Unit]
@@ -29,7 +30,7 @@ Environment=RGB_FPS=30
 # Optional: Environment=RGB_GAMMA=2.2  (smoother fades; colors render dimmer)
 Environment=PYTHONUNBUFFERED=1
 # Exactly ONE worker: the strand can only be driven by a single process.
-ExecStart=/usr/bin/python3 -m gunicorn --workers 1 --threads 4 --bind 127.0.0.1:8000 --timeout 60 app:app
+ExecStart=/home/pi/rgb-show/server/.venv/bin/python -m gunicorn --workers 1 --threads 4 --bind 127.0.0.1:8000 --timeout 60 app:app
 Restart=always
 RestartSec=3
 KillSignal=SIGINT

@@ -24,7 +24,7 @@ cd ~/rgb-show
 ./setup.sh
 ```
 
-`setup.sh` installs the Python dependencies, a **systemd service** (`rgb-show`) that starts on boot, and an nginx proxy on port 80. Open `http://<pi-ip>/`.
+`setup.sh` creates a venv in `server/.venv` with the Python dependencies (Raspberry Pi OS blocks system-wide pip), a **systemd service** (`rgb-show`) that starts on boot, and an nginx proxy on port 80. Open `http://<pi-ip>/`.
 
 Useful commands:
 
