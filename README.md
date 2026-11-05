@@ -54,7 +54,7 @@ All settings are environment variables. For the systemd service, edit them in
 | --- | --- | --- |
 | `RGB_NUM_PIXELS` | `100` | Number of lights on the strand |
 | `RGB_PIN` | `D18` | `board` pin name the data line is on (`D18`, `D12`, `D21`, …) |
-| `RGB_TREE_RINGS` | auto | Lights per wrap, **bottom → top**, comma-separated, e.g. `30,20,15,10,10,10,5`. Must sum to `RGB_NUM_PIXELS` (it's normalized if not). Unset = a cone layout is synthesized from the pixel count. |
+| `RGB_TREE_RINGS` | auto | Lights per wrap, **bottom → top**, comma-separated, e.g. `32,26,20,14,8` (the default). Must sum to `RGB_NUM_PIXELS` (it's normalized if not). Unset = a cone layout is synthesized from the pixel count. |
 | `RGB_LAYOUT` | `tree` | `tree` (spiral on a cone) or `strand` (straight line, e.g. a roofline) |
 | `RGB_BRIGHTNESS` | `0.1` | Startup brightness 0–1 (overridden by the saved state once you change it in the UI) |
 | `RGB_PIXEL_ORDER` | `RGB` | Color order of your strand: `RGB`, `GRB`, `BRG`, … If red shows as green, change this. |

@@ -43,9 +43,9 @@ def _env_rings(name: str) -> Optional[List[int]]:
     return [r for r in rings if r > 0] or None
 
 
-# The proportions of Austin's tree: 7 wraps, 30 lights on the bottom wrap down
-# to 5 at the top. Used to synthesize a sensible cone layout for any pixel count.
-DEFAULT_RING_PROPORTIONS = [30, 20, 15, 10, 10, 10, 5]
+# Default tree shape: 5 wraps tapering from 32 lights on the bottom wrap to 8 at the top.
+# Scaled to whatever RGB_NUM_PIXELS is; override exactly with RGB_TREE_RINGS.
+DEFAULT_RING_PROPORTIONS = [32, 26, 20, 14, 8]
 
 
 @dataclass

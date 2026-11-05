@@ -23,7 +23,7 @@ User=root
 WorkingDirectory=/home/pi/rgb-show/server
 Environment=RGB_NUM_PIXELS=100
 Environment=RGB_PIN=D18
-Environment=RGB_TREE_RINGS=30,20,15,10,10,10,5
+Environment=RGB_TREE_RINGS=32,26,20,14,8
 Environment=RGB_BRIGHTNESS=0.1
 Environment=RGB_FPS=30
 # Optional: Environment=RGB_GAMMA=2.2  (smoother fades; colors render dimmer)

@@ -6,7 +6,7 @@
 # API under /api for controlling the lights.
 #
 # Configuration is via environment variables (see config.py / README):
-#   RGB_NUM_PIXELS=100 RGB_PIN=D18 RGB_TREE_RINGS=30,20,15,10,10,10,5 ...
+#   RGB_NUM_PIXELS=100 RGB_PIN=D18 RGB_TREE_RINGS=32,26,20,14,8 ...
 # Run with RGB_SIMULATE=1 on a laptop to develop without a Pi.
 
 import atexit

@@ -178,3 +178,10 @@ def test_gamma_is_applied_to_hardware_but_not_preview():
     c2 = NeoPixelController(3, simulate=True, gamma=1.0)
     c2.show_frame([(128, 128, 128)] * 3)
     assert c2.pixels[0] == (128, 128, 128)
+
+
+def test_default_layout_is_five_tapering_wraps():
+    rings = Config(num_pixels=100).resolved_rings()
+    assert rings == [32, 26, 20, 14, 8]
+    assert all(a > b for a, b in zip(rings, rings[1:]))
+    assert len(Config(num_pixels=50).resolved_rings()) == 5
