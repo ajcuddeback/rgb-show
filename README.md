@@ -58,7 +58,7 @@ All settings are environment variables. For the systemd service, edit them in
 | `RGB_LAYOUT` | `tree` | `tree` (spiral on a cone) or `strand` (straight line, e.g. a roofline) |
 | `RGB_BRIGHTNESS` | `0.1` | Startup brightness 0–1 (overridden by the saved state once you change it in the UI) |
 | `RGB_PIXEL_ORDER` | `RGB` | Color order of your strand: `RGB`, `GRB`, `BRG`, … If red shows as green, change this. |
-| `RGB_GAMMA` | `2.2` | Gamma correction so dim colors and fades look right on LEDs. `1.0` disables. |
+| `RGB_GAMMA` | `1.0` | Off by default so colors match the original build exactly. Set `2.2` for perceptually smoother fades/dim colors (tree looks a bit dimmer at the same brightness). |
 | `RGB_FPS` | `30` | Animation frame rate cap |
 | `RGB_AUTOSTART` | `true` | Resume the last animation on boot |
 | `RGB_DATA_DIR` | `server/` | Where `state.json` and `presets.json` are stored |

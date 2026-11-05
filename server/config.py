@@ -54,7 +54,7 @@ class Config:
     pin_name: str = "D18"
     brightness: float = 0.1            # 0.0 - 1.0 startup brightness
     pixel_order: str = "RGB"           # RGB / GRB / RGBW ... (WS2811 strands are usually RGB)
-    gamma: float = 2.2                 # 1.0 disables gamma correction
+    gamma: float = 1.0                 # 1.0 = raw colors (matches the original behavior); try 2.2 for smoother fades
     fps: int = 30                      # frame rate cap for animations
     layout: str = "tree"               # "tree" (spiral wrapped cone) or "strand" (straight line)
     rings: Optional[List[int]] = None  # pixels per wrap, bottom -> top. None = auto from proportions
@@ -75,7 +75,7 @@ class Config:
             pin_name=os.environ.get("RGB_PIN", "D18"),
             brightness=min(1.0, max(0.0, _env_float("RGB_BRIGHTNESS", 0.1))),
             pixel_order=os.environ.get("RGB_PIXEL_ORDER", "RGB").upper(),
-            gamma=max(1.0, _env_float("RGB_GAMMA", 2.2)),
+            gamma=max(1.0, _env_float("RGB_GAMMA", 1.0)),
             fps=max(5, min(120, _env_int("RGB_FPS", 30))),
             layout=os.environ.get("RGB_LAYOUT", "tree").lower(),
             rings=_env_rings("RGB_TREE_RINGS"),

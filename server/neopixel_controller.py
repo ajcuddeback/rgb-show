@@ -52,7 +52,7 @@ def _build_gamma_table(gamma: float) -> List[int]:
 
 class NeoPixelController:
     def __init__(self, num_pixels: int, pin_name: str = "D18", brightness: float = 0.1,
-                 pixel_order: str = "RGB", gamma: float = 2.2, simulate: bool = False):
+                 pixel_order: str = "RGB", gamma: float = 1.0, simulate: bool = False):
         self.num_pixels = num_pixels
         self.pin_name = pin_name
         self.brightness = brightness
