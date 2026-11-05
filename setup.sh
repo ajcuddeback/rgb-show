@@ -25,6 +25,9 @@ echo "==> Installing Python dependencies"
 sudo python3 -m pip install -q --upgrade --break-system-packages -r "$REPO_DIR/server/requirements.txt" 2>/dev/null \
   || sudo python3 -m pip install -q --upgrade -r "$REPO_DIR/server/requirements.txt"
 
+echo "==> Stopping any old gunicorn3 --daemon instance"
+sudo pkill -f "gunicorn3 app:app" 2>/dev/null || true
+
 echo "==> Installing systemd service"
 sed "s#/home/pi/rgb-show#$REPO_DIR#g" "$REPO_DIR/deploy/rgb-show.service" | sudo tee /etc/systemd/system/rgb-show.service >/dev/null
 sudo systemctl daemon-reload
@@ -35,7 +38,8 @@ if [[ $WITH_NGINX -eq 1 ]]; then
   echo "==> Configuring nginx"
   sudo cp "$REPO_DIR/deploy/nginx-rgb-show.conf" /etc/nginx/sites-available/rgb-show
   sudo ln -sf /etc/nginx/sites-available/rgb-show /etc/nginx/sites-enabled/rgb-show
-  sudo rm -f /etc/nginx/sites-enabled/default
+  # Remove the stock default site and the old hand-made config from the original README
+  sudo rm -f /etc/nginx/sites-enabled/default /etc/nginx/sites-enabled/flask_app
   sudo nginx -t
   sudo systemctl reload nginx
 fi
