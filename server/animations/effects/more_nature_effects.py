@@ -6,6 +6,7 @@ import random
 
 from ..base import Animation, Param
 from ..colors import BLACK, WHITE, lerp, scale, maximum
+from tree import angular_distance
 
 
 class Fireflies(Animation):
@@ -57,13 +58,13 @@ class Fireflies(Animation):
 
 class Icicles(Animation):
     LABEL = "Icicles"
-    DESCRIPTION = "Cold white drips slide down the tree over a frosty blue glow."
+    DESCRIPTION = "Cold white drips run straight down the tree over a frosty blue glow."
     CATEGORY = "Nature"
     PARAMS = [
         Param("background", "color", "Frost color", (0, 25, 60)),
         Param("drip", "color", "Drip color", (200, 240, 255)),
         Param("count", "number", "Drips", 8, min=1, max=25, step=1),
-        Param("length", "number", "Drip length", 5, min=2, max=15, step=1),
+        Param("length", "number", "Drip length", 0.18, min=0.05, max=0.5, step=0.01),
         Param("tempo", "number", "Speed", 1, min=0.2, max=3, step=0.1),
     ]
     PREVIEW = [(200, 240, 255), (0, 25, 60)]
@@ -72,9 +73,8 @@ class Icicles(Animation):
         self._drips = []
 
     def _spawn(self, t):
-        start = random.uniform(self.n * 0.3, self.n - 1)
-        return {"t0": t + random.uniform(0, 2), "start": start,
-                "dist": random.uniform(self.n * 0.15, self.n * 0.5), "v": random.uniform(12, 30)}
+        return {"t0": t + random.uniform(0, 2), "angle": random.random(), "start": random.uniform(0.45, 1.0),
+                "dist": random.uniform(0.2, 0.6), "v": random.uniform(0.15, 0.4)}
 
     def render(self, t):
         bg = self.p("background")
@@ -82,12 +82,13 @@ class Icicles(Animation):
         count = int(self.p("count"))
         length = self.p("length")
         tempo = self.p("tempo")
+        tree = self.tree
+        n = self.n
         while len(self._drips) < count:
             self._drips.append(self._spawn(t))
         self._drips = self._drips[:count]
         frame = self.frame
-        # frosty shimmer
-        for i in range(self.n):
+        for i in range(n):
             frame[i] = scale(bg, 0.8 + 0.2 * math.sin(t * 0.7 + i * 0.3))
         for idx, d in enumerate(self._drips):
             age = t - d["t0"]
@@ -97,14 +98,18 @@ class Icicles(Animation):
             if travelled > d["dist"] + length:
                 self._drips[idx] = self._spawn(t)
                 continue
-            head = d["start"] - travelled                 # falls toward the bottom
-            melt = max(0.0, 1 - max(0.0, travelled - d["dist"]) / length)   # fades out at the end
-            lo, hi = int(max(0, head)), int(min(self.n - 1, head + length))
-            for i in range(lo, hi + 1):
-                above = i - head
-                if 0 <= above <= length:
-                    level = (1 - above / length) * melt
-                    frame[i] = maximum(frame[i], lerp(bg, dc, level))
+            head = d["start"] - travelled
+            melt = max(0.0, 1 - max(0.0, travelled - d["dist"]) / length)
+            for i in range(n):
+                above = tree.z[i] - head
+                if above < 0 or above > length:
+                    continue
+                reach = 0.06 / max(0.25, tree.radius[i])
+                ad = angular_distance(tree.angle[i], d["angle"])
+                if ad > reach:
+                    continue
+                level = (1 - above / length) * (1 - ad / reach) * melt
+                frame[i] = maximum(frame[i], lerp(bg, dc, level))
 
 
 class StarryNight(Animation):

@@ -168,6 +168,8 @@ def test_tree_layout_geometry():
     assert tree.height[0] == 0 and tree.height[-1] == 1
     assert tree.ring_of[29] == 0 and tree.ring_of[30] == 1
     assert list(tree.pixels_in_ring(6)) == list(range(95, 100))
+    assert tree.top_pixels(5) == list(range(95, 100))
+    assert tree.source == "wraps" and len(tree.points()) == 100
     assert all(0 <= a < 1 for a in tree.angle)
 
 

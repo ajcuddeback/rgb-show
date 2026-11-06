@@ -89,12 +89,40 @@ def create_app(config: Config = None) -> Flask:
     def set_layout():
         data = body()
         rings = data.get("rings")
+        points = data.get("points")
         if rings is not None and (not isinstance(rings, list) or not all(isinstance(r, (int, float)) for r in rings)):
             abort(400, description="'rings' must be a list of numbers (lights per wrap, bottom to top)")
+        if points is not None:
+            if not isinstance(points, list) or not all(
+                p is None or (isinstance(p, list) and len(p) == 3 and all(isinstance(v, (int, float)) for v in p)) for p in points
+            ):
+                abort(400, description="'points' must be a list of [x, y, z] (or null for unknown), one per light")
         try:
-            engine.set_layout(data.get("numPixels"), rings)
+            engine.set_layout(data.get("numPixels"), rings, points)
         except (ValueError, TypeError) as exc:
             abort(400, description=str(exc))
+        return jsonify(full_state())
+
+    # ----------------------------------------------------------- calibration
+    @app.post("/api/calibration/start")
+    def calibration_start():
+        data = request.get_json(silent=True) or {}
+        return jsonify(engine.calibration_start(float(data.get("brightness", 0.6))))
+
+    @app.post("/api/calibration/light")
+    def calibration_light():
+        data = body()
+        try:
+            color = tuple(int(c) for c in data.get("color", (255, 255, 255)))[:3]
+            return jsonify(engine.calibration_light(data.get("index"), color=color, all_on=bool(data.get("all", False))))
+        except RuntimeError as exc:
+            abort(409, description=str(exc))
+        except (ValueError, TypeError) as exc:
+            abort(400, description=str(exc))
+
+    @app.post("/api/calibration/stop")
+    def calibration_stop():
+        engine.calibration_stop()
         return jsonify(full_state())
 
     @app.get("/api/state")

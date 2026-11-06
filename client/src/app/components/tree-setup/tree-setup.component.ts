@@ -11,13 +11,22 @@ import { RgbService } from '../../services/rgb.service';
   standalone: true,
   template: `
     @if (!open()) {
-      <button type="button" class="opener card" (click)="start()">
-        <span>
+      <div class="card setup-card">
+        <div class="summary">
           <span class="t">Tree setup</span>
-          <span class="muted small">{{ svc.config()?.numPixels }} lights · {{ svc.config()?.rings?.length }} wraps</span>
-        </span>
-        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
+          <span class="muted small">
+            {{ svc.config()?.numPixels }} lights ·
+            @if (svc.config()?.source === 'camera') { mapped with camera } @else { {{ svc.config()?.rings?.length }} wraps (estimated) }
+          </span>
+        </div>
+        <div class="actions">
+          <button type="button" class="btn sm primary map" (click)="svc.mapperOpen.set(true)">
+            <svg viewBox="0 0 24 24"><path d="M4 8a2 2 0 0 1 2-2h2l1.5-2h5L16 6h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="12.5" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+            Map with camera
+          </button>
+          <button type="button" class="btn sm" (click)="start()">Edit lights &amp; wraps</button>
+        </div>
+      </div>
     } @else {
       <form class="setup card" (submit)="$event.preventDefault(); save()">
         <h2>Tree setup</h2>
@@ -61,13 +70,10 @@ import { RgbService } from '../../services/rgb.service';
   `,
   styles: [`
     :host { display: block; }
-    .opener {
-      width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer;
-      padding: 14px 16px; text-align: left; color: var(--text-2);
-      > span { display: flex; flex-direction: column; }
-      .t { color: var(--text); font-weight: 500; }
-      &:hover { background: var(--surface-2); }
-    }
+    .setup-card { padding: 14px 16px; display: grid; gap: 12px; }
+    .summary { display: flex; flex-direction: column; }
+    .t { font-weight: 500; }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; }
     .setup { display: grid; gap: 14px; padding: 18px; }
     .field { display: grid; gap: 6px; }
     label { font-size: 0.9rem; font-weight: 500; }

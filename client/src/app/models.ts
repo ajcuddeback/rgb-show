@@ -35,6 +35,10 @@ export interface TreeConfig {
   layout: string;
   rings: number[];
   simulated: boolean;
+  /** "wraps" = estimated cone from lights-per-wrap; "camera" = measured with the phone camera. */
+  source: 'wraps' | 'camera';
+  /** Normalized [x, y, z] per light: x/y in -1..1 (front of the tree is -y), z 0 (bottom) .. 1 (top). */
+  points: [number, number, number][];
 }
 
 export interface RgbState {

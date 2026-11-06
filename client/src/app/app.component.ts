@@ -9,11 +9,12 @@ import { AnimationGridComponent } from './components/animation-grid/animation-gr
 import { ParamEditorComponent } from './components/param-editor/param-editor.component';
 import { PresetsPanelComponent } from './components/presets-panel/presets-panel.component';
 import { TreeSetupComponent } from './components/tree-setup/tree-setup.component';
+import { TreeMapperComponent } from './components/tree-mapper/tree-mapper.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [GlobalControlsComponent, TreePreviewComponent, AnimationGridComponent, ParamEditorComponent, PresetsPanelComponent, TreeSetupComponent],
+  imports: [GlobalControlsComponent, TreePreviewComponent, AnimationGridComponent, ParamEditorComponent, PresetsPanelComponent, TreeSetupComponent, TreeMapperComponent],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })

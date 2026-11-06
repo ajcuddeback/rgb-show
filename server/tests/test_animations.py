@@ -10,12 +10,24 @@ from tree import TreeLayout
 ALL = sorted(registry.all_animations().items())
 
 
+def _mapped_tree(n):
+    import math
+    import random
+    rnd = random.Random(n)
+    pts = [[(1 - 0.8 * i / n) * math.cos(i * 0.4) + rnd.uniform(-0.05, 0.05),
+            (1 - 0.8 * i / n) * math.sin(i * 0.4), i / max(1, n - 1)] for i in range(n)]
+    if n > 10:
+        pts[3] = None
+    return TreeLayout.from_points(pts)
+
+
 @pytest.mark.parametrize("name,cls", ALL, ids=[n for n, _ in ALL])
 @pytest.mark.parametrize("num_pixels", [1, 7, 50, 100, 250])
-def test_renders_valid_frames(name, cls, num_pixels):
+@pytest.mark.parametrize("kind", ["wraps", "mapped"])
+def test_renders_valid_frames(name, cls, num_pixels, kind):
     cfg = Config(num_pixels=num_pixels, simulate=True)
     controller = NeoPixelController(num_pixels, simulate=True)
-    tree = TreeLayout(cfg.resolved_rings())
+    tree = TreeLayout(cfg.resolved_rings()) if kind == "wraps" else _mapped_tree(num_pixels)
     anim = cls(controller, tree, {}, speed=1.0, fps=30)
     for step in range(40):
         anim.render(step * 0.1)

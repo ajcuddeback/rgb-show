@@ -3,12 +3,12 @@
 Control a strand of NeoPixels (WS2811 / WS2812) wrapped around a Christmas tree from your phone.
 Flask + Python on a Raspberry Pi drives the lights; a small Angular app (pre-built, no Node needed on the Pi) is the remote.
 
-- **33 animations** that understand the *shape* of the tree (height, angle, wraps): spirals, climbing rings, falling snow, fireworks that launch up the tree, aurora curtains, a pulsing tree-top star, glinting ornaments, a rotating beacon, fireflies, icicles, a starry night, and more.
+- **36 animations** that understand the *shape* of the tree (height, angle, wraps): spirals, climbing rings, falling snow, fireworks that launch up the tree, aurora curtains, a pulsing tree-top star, glinting ornaments, a rotating beacon, fireflies, icicles, a starry night, and true-3D sweeps, pulses and orbits.
 - **Every animation is customizable** — colors (with palettes), speeds, densities, directions — and changes apply **live** while it plays.
 - **Live preview** of the tree in the browser, mirroring exactly what the strand is showing.
 - **Presets**: save and recall your favorite looks.
 - **Installable**: it's a PWA — add it to your phone's home screen and it opens like an app, full screen, and updates itself when you deploy.
-- **Set up in the app**: light count and lights-per-wrap are edited in the UI, not in config files.
+- **Map your tree with your phone's camera**: the app flashes each light while the camera watches, from two or more angles, and solves every light's 3D position. Every effect then follows the real shape of *your* tree. (Or just type lights-per-wrap in the app — no config files either way.)
 - **Survives reboots**: last animation, brightness and speed are restored on boot.
 - **Home Assistant** integration: shows up as a light with every animation as an effect, plus presets and speed. One service, zero HA config.
 - **Runs anywhere**: without NeoPixel hardware the server falls back to a simulator, so you can develop on a laptop.
@@ -70,10 +70,26 @@ All settings are environment variables. For the systemd service, edit them in
 
 ### Mapping your tree
 
-In the app, tap **Set up tree** under the preview: enter the number of lights and how many sit on each
-wrap from the bottom up (or hit *Even cone* to distribute them). The strand is reconfigured live and the
-layout is saved on the Pi, overriding the env defaults above. The spiral/climb/snow/fireworks effects use
-this to know which lights are at the same height and which side of the tree they're on. Close enough is fine.
+Effects need to know where each light *is*. Two ways to tell them, both in the app under **Tree setup**:
+
+**Map with camera (best).** Turn the room lights off, prop your phone up with the whole tree in frame, and tap
+*Map with camera*. The app flashes each light in turn while the camera watches (~20 s for 100 lights) and finds it
+in the frame; then you walk a quarter of the way around the tree and do it again. Two views at 90° give every
+light a real 3D position; three or four help a dense tree. Lights the camera never saw are placed between their
+wire-neighbors; reflections are rejected automatically. The result is saved on the Pi and the preview starts
+drawing your actual tree (drag it to look around). Needs HTTPS (or localhost) for camera access — so use your
+public URL, not the LAN IP, on phones.
+
+*How it works:* per view, a dark reference frame is subtracted from each flash frame and the brightest blob's
+centroid is recorded. Views are normalized by the tree's apparent height so phone distance doesn't matter, then
+each light's (x, y) is a least-squares fit across views and z is averaged. No ML involved — the lights identify
+themselves by blinking. On a simulated server a *simulated camera* runs the same pipeline against the virtual tree.
+
+**Edit lights & wraps (quick).** Enter the number of lights and how many sit on each wrap from the bottom up
+(or hit *Even cone*). The server assumes a cone spiral. Close enough is fine.
+
+Either way the strand is reconfigured live, the layout is saved on the Pi (overriding the env defaults above),
+and the current animation restarts on the new geometry.
 
 ## Using the app
 
@@ -192,7 +208,10 @@ class Heartbeat(Animation):
         self.fill(gradient(self.p("colors"), 1 - level, wrap=False))
 ```
 
-`self.tree.height[i]`, `self.tree.angle[i]` and `self.tree.ring_of[i]` tell you where pixel `i` is on the tree.
+`self.tree.x[i]`, `.y[i]`, `.z[i]` (normalized 3D; front of the tree is -y), `.height[i]` (= z), `.angle[i]` (turns around
+the trunk, 0..1), `.radius[i]` and `.ring_of[i]` (height band) tell you where pixel `i` is. `tree.pixels_in_ring(r)` and
+`tree.top_pixels(k)` are handy. These come from the camera map when there is one, otherwise from the cone estimate,
+so effects written against them look right either way.
 Param types: `color`, `colors`, `number`, `select`, `boolean`.
 
 ## HTTP API
@@ -203,7 +222,10 @@ Param types: `color`, `colors`, `number`, `select`, `boolean`.
 | GET | `/api/animations` | | All animations with their param schemas |
 | POST | `/api/animations/<name>/start` | `{"params": {...}}` | Start an animation (missing params use defaults) |
 | PATCH | `/api/params` | `{"params": {...}}` | Live-update the running animation |
-| GET/PUT | `/api/layout` | `{"numPixels": 100, "rings": [32,26,20,14,8]}` | Read / change the strand length and wraps (live, persisted) |
+| GET/PUT | `/api/layout` | `{"numPixels": 100, "rings": [32,26,20,14,8]}` or `{"numPixels": 100, "points": [[x,y,z]|null, ...]}` | Read / change the strand length and geometry (live, persisted). Response includes normalized `points` and `source` |
+| POST | `/api/calibration/start` | `{"brightness": 0.6}` | Enter mapping mode: show paused, lights off |
+| POST | `/api/calibration/light` | `{"index": 42}` / `{"all": true}` / `{"index": null}` | Light exactly one pixel (or all / none) |
+| POST | `/api/calibration/stop` | | Leave mapping mode and resume what was playing |
 | POST | `/api/power` | `{"on": true}` | Off remembers; on resumes |
 | POST | `/api/brightness` | `{"brightness": 0.3}` | 0–1 |
 | POST | `/api/speed` | `{"speed": 1.5}` | Global multiplier |
@@ -224,9 +246,9 @@ curl -X POST http://tree.local/api/animations/twinkle/start -H 'content-type: ap
 - `server/app.py` — Flask app and API
 - `server/engine.py` — owns the running animation thread, persistence
 - `server/ha_bridge.py` — optional Home Assistant MQTT bridge
-- `server/tree.py` — pixel → (height, angle, wrap) geometry
+- `server/tree.py` — pixel → 3D position / height / angle / band geometry (from camera map or cone estimate)
 - `server/animations/` — base class, color helpers, registry, `effects/*`
-- `client/` — Angular 17 UI (standalone components + signals)
+- `client/` — Angular 17 UI (standalone components + signals); `src/app/mapping/` holds the camera pipeline and 3D solver
 - `templates/` — **built** UI, served by Flask
 - `deploy/` — systemd units, nginx config, Home Assistant files
 

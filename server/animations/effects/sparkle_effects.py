@@ -6,6 +6,7 @@ import random
 
 from ..base import Animation, Param, select_options
 from ..colors import (XMAS, WHITE, BLACK, GOLD, WARM_WHITE, lerp, scale, maximum, random_color)
+from tree import angular_distance
 
 
 class Twinkle(Animation):
@@ -152,12 +153,12 @@ class Meteor(Animation):
 
 class Fireworks(Animation):
     LABEL = "Fireworks"
-    DESCRIPTION = "Rockets climb the tree and burst into rings of color."
+    DESCRIPTION = "Rockets climb one side of the tree and burst into expanding spheres of color."
     CATEGORY = "Showpiece"
     PARAMS = [
         Param("colors", "colors", "Burst colors", [(255, 40, 40), (60, 255, 80), (80, 120, 255), GOLD, WHITE]),
         Param("rate", "number", "Launches per second", 0.7, min=0.1, max=3, step=0.1),
-        Param("size", "number", "Burst size", 14, min=4, max=40, step=1),
+        Param("size", "number", "Burst size", 0.7, min=0.15, max=1.4, step=0.05),
         Param("background", "color", "Background", BLACK),
     ]
     PREVIEW = [(255, 40, 40), (60, 255, 80), (80, 120, 255), GOLD]
@@ -174,43 +175,49 @@ class Fireworks(Animation):
         rate = self.p("rate")
         size = self.p("size")
         bg = self.p("background")
+        tree = self.tree
         n = self.n
 
         if t >= self._next_launch:
-            self._shells.append({
-                "t0": t,
-                "center": random.randint(int(n * 0.3), n - 1),
-                "color": random_color(colors),
-            })
+            self._shells.append({"t0": t, "angle": random.random(), "top": random.uniform(0.45, 0.95),
+                                 "color": random_color(colors)})
             self._next_launch = t + random.expovariate(rate) if rate > 0 else t + 9999
-            self._shells = self._shells[-12:]
+            self._shells = self._shells[-10:]
 
         frame = self.frame
         for i in range(n):
             frame[i] = bg
 
         alive = []
-        for s in self._shells:
-            age = t - s["t0"]
+        for s_ in self._shells:
+            age = t - s_["t0"]
             if age < self.LAUNCH:
-                # rocket: a short bright dot climbing the strand toward the center
-                pos = int(s["center"] * (age / self.LAUNCH) ** 0.8)
-                for k in range(3):
-                    i = pos - k
-                    if 0 <= i < n:
-                        frame[i] = maximum(frame[i], scale(WHITE, 1 - k / 3))
-                alive.append(s)
+                # rocket: a bright spark rising up one side of the tree
+                h = s_["top"] * (age / self.LAUNCH) ** 0.8
+                for i in range(n):
+                    dh = h - tree.z[i]
+                    if dh < 0 or dh > 0.08:
+                        continue
+                    ad = angular_distance(tree.angle[i], s_["angle"])
+                    reach = 0.05 / max(0.25, tree.radius[i])
+                    if ad < reach:
+                        frame[i] = maximum(frame[i], scale(WHITE, (1 - dh / 0.08) * (1 - ad / reach)))
+                alive.append(s_)
             elif age < self.LAUNCH + self.LIFE:
                 burst = (age - self.LAUNCH) / self.LIFE
-                radius = size * (1 - (1 - burst) ** 2)      # fast expand, then slow
+                radius = size * (1 - (1 - burst) ** 2)
                 fade = (1 - burst) ** 1.5
-                c = s["center"]
-                lo, hi = int(max(0, c - radius)), int(min(n - 1, c + radius))
-                for i in range(lo, hi + 1):
-                    d = abs(i - c)
-                    shell = 1 - abs(d - radius) / max(1.0, radius)   # brighter at the expanding edge
-                    level = max(0.0, shell) * fade + 0.25 * fade * (1 - d / max(1.0, radius))
+                ca = s_["angle"] * 2 * math.pi
+                cr = 1 - 0.9 * s_["top"]
+                cx, cy, cz = cr * math.cos(ca), cr * math.sin(ca), s_["top"]
+                for i in range(n):
+                    d = math.sqrt((tree.x[i] - cx) ** 2 + (tree.y[i] - cy) ** 2 + ((tree.z[i] - cz) * 2.2) ** 2)
+                    if d > radius + 0.16:
+                        continue
+                    shell = max(0.0, 1 - abs(d - radius) / 0.16)
+                    inner = max(0.0, 1 - d / max(0.05, radius)) * 0.4
+                    level = (shell + inner) * fade
                     if level > 0:
-                        frame[i] = maximum(frame[i], scale(s["color"], min(1.0, level)))
-                alive.append(s)
+                        frame[i] = maximum(frame[i], scale(s_["color"], min(1.0, level)))
+                alive.append(s_)
         self._shells = alive

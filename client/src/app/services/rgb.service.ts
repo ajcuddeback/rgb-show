@@ -22,6 +22,8 @@ export class RgbService {
   readonly drafts = signal<Record<string, Params>>({});
   /** Bumps every time the user taps an animation tile (UI uses it to open the settings sheet). */
   readonly lastTap = signal(0);
+  /** Full-screen camera mapping flow visible. */
+  readonly mapperOpen = signal(false);
 
   readonly power = computed(() => this.state()?.power ?? false);
   readonly current = computed(() => this.state()?.animation ?? null);
@@ -173,6 +175,38 @@ export class RgbService {
       this.fail(e as HttpErrorResponse);
       return false;
     }
+  }
+
+  async saveMappedLayout(points: ([number, number, number] | null)[]): Promise<boolean> {
+    try {
+      const s = await firstValueFrom(this.http.put<RgbState>('/api/layout', { numPixels: points.length, points }));
+      this.applyState(s, false);
+      return true;
+    } catch (e) {
+      this.fail(e as HttpErrorResponse);
+      return false;
+    }
+  }
+
+  // ------------------------------------------------------------- calibration
+  calibrationStart(brightness = 0.6): Promise<{ calibrating: boolean; numPixels: number }> {
+    return firstValueFrom(this.http.post<{ calibrating: boolean; numPixels: number }>('/api/calibration/start', { brightness }));
+  }
+
+  calibrationLight(index: number | null, all = false): Promise<unknown> {
+    return firstValueFrom(this.http.post('/api/calibration/light', { index, all }));
+  }
+
+  async calibrationStop(): Promise<void> {
+    try {
+      const s = await firstValueFrom(this.http.post<RgbState>('/api/calibration/stop', {}));
+      this.applyState(s, false);
+    } catch { /* best effort */ }
+  }
+
+  /** Raw frame for the simulated camera (RGB triplets). */
+  async frameRgb(): Promise<RGB[]> {
+    return (await firstValueFrom(this.getFrame())).pixels;
   }
 
   // ----------------------------------------------------------------- presets

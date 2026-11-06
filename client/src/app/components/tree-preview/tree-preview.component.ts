@@ -37,7 +37,7 @@ interface Dot { x: number; y: number; depth: number; r: number; }
   styles: [`
     :host { display: block; }
     .hero { position: relative; overflow: hidden; aspect-ratio: 4 / 5; background: radial-gradient(120% 90% at 50% 100%, #1a1d23 0%, var(--surface) 60%); }
-    canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+    canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: grab; touch-action: pan-y; }
     .hud { position: absolute; left: 18px; right: 18px; top: 16px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
     .status p { display: flex; align-items: center; gap: 6px; margin-top: 2px; }
     .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: breathe 2s ease-in-out infinite; }
@@ -67,8 +67,8 @@ export class TreePreviewComponent implements AfterViewInit, OnDestroy {
     effect(() => {
       const cfg = this.svc.config();
       if (!cfg) { return; }
-      const key = cfg.rings.join(',');
-      if (key !== this.ringsKey) { this.ringsKey = key; this.layout(cfg.rings); this.draw(); }
+      const key = cfg.source + ':' + cfg.points.length + ':' + cfg.rings.join(',');
+      if (key !== this.ringsKey) { this.ringsKey = key; this.layout(); this.draw(); }
     });
     effect(() => { if (!this.svc.power()) { this.frame = []; this.draw(); } });
   }
@@ -78,7 +78,23 @@ export class TreePreviewComponent implements AfterViewInit, OnDestroy {
     new ResizeObserver(() => this.resize()).observe(canvas);
     this.resize();
     this.timer = setInterval(() => this.poll(), 125);
+    // Drag to look around the tree
+    let lastX: number | null = null;
+    canvas.addEventListener('pointerdown', e => { lastX = e.clientX; canvas.setPointerCapture(e.pointerId); });
+    canvas.addEventListener('pointermove', e => {
+      if (lastX === null) { return; }
+      this.rotation += (e.clientX - lastX) * 0.012;
+      lastX = e.clientX;
+      this.layout();
+      this.draw();
+    });
+    const up = () => { lastX = null; };
+    canvas.addEventListener('pointerup', up);
+    canvas.addEventListener('pointercancel', up);
   }
+
+  /** View rotation around the trunk, radians. */
+  private rotation = 0;
 
   ngOnDestroy(): void { if (this.timer) { clearInterval(this.timer); } }
 
@@ -88,34 +104,31 @@ export class TreePreviewComponent implements AfterViewInit, OnDestroy {
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     canvas.width = Math.round((canvas.clientWidth || 300) * dpr);
     canvas.height = Math.round((canvas.clientHeight || 375) * dpr);
-    const cfg = this.svc.config();
-    if (cfg) { this.layout(cfg.rings); }
+    if (this.svc.config()) { this.layout(); }
     this.draw();
   }
 
-  private layout(rings: number[]): void {
+  /** Project the server's 3D points (front of tree = -y) onto the canvas. */
+  private layout(): void {
     const canvas = this.canvasRef?.nativeElement;
-    if (!canvas) { return; }
+    const cfg = this.svc.config();
+    if (!canvas || !cfg) { return; }
     const W = canvas.width, H = canvas.height;
     const top = H * 0.2, base = H * 0.86, cx = W / 2, R = W * 0.36;
-    const numRings = rings.length;
-    const dots: Dot[] = [];
-    for (let r = 0; r < numRings; r++) {
-      for (let k = 0; k < rings[r]; k++) {
-        const frac = k / rings[r];
-        const h = numRings === 1 ? frac : (r + frac) / numRings;
-        const hn = Math.min(1, h / ((numRings - 1 + (rings[numRings - 1] - 1) / rings[numRings - 1]) / numRings || 1));
-        const theta = frac * Math.PI * 2 - Math.PI / 2;
-        const radius = R * (1 - hn * 0.9) + W * 0.015;
-        const depth = Math.sin(theta);
-        dots.push({
-          x: cx + radius * Math.cos(theta),
-          y: base - hn * (base - top) + radius * 0.28 * depth,
-          depth,
-          r: W * (0.011 + 0.006 * (depth + 1) / 2) * (rings.reduce((a, b) => a + b, 0) > 150 ? 0.7 : 1),
-        });
-      }
-    }
+    const cos = Math.cos(this.rotation), sin = Math.sin(this.rotation);
+    const pts = cfg.points;
+    const small = pts.length > 150 ? 0.7 : 1;
+    const dots: Dot[] = pts.map(([x, y, z]) => {
+      const rx = x * cos - y * sin;
+      const ry = x * sin + y * cos;
+      const depth = -ry;                                     // -y is the front
+      return {
+        x: cx + rx * R,
+        y: base - z * (base - top) + ry * R * 0.28,
+        depth,
+        r: W * (0.011 + 0.006 * (depth + 1) / 2) * small,
+      };
+    });
     this.dots = dots;
     this.order = dots.map((_, i) => i).sort((a, b) => dots[a].depth - dots[b].depth);
   }

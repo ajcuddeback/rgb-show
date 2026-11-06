@@ -39,10 +39,10 @@ class Ornaments(Animation):
         tree = self.p("tree")
         tempo = self.p("tempo")
         star = self.p("star")
-        top = self.tree.ring_start[-1] if star else self.n
+        top_set = set(self.tree.pixels_in_ring(self.tree.num_rings - 1)) if star else set()
         frame = self.frame
         for i in range(self.n):
-            if i >= top:
+            if i in top_set:
                 frame[i] = scale(GOLD, 0.7 + 0.3 * math.sin(t * 3 + self._phase[i]))
                 continue
             orn = self._orn[i]

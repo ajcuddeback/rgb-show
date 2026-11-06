@@ -6,17 +6,19 @@ import random
 
 from ..base import Animation, Param, select_options
 from ..colors import (WHITE, BLACK, WARM_WHITE, AURORA, FIRE, gradient, lerp, scale, maximum, hsv)
+from tree import angular_distance
 
 
 class Snow(Animation):
     LABEL = "Snowfall"
-    DESCRIPTION = "Snowflakes drift down the tree over a quiet winter background."
+    DESCRIPTION = "Snowflakes drift straight down through the tree over a quiet winter background."
     CATEGORY = "Nature"
     PARAMS = [
         Param("background", "color", "Background", (0, 10, 40)),
         Param("flake", "color", "Snowflake color", WHITE),
         Param("count", "number", "Snowflakes", 10, min=1, max=30, step=1),
         Param("tempo", "number", "Fall speed", 1, min=0.2, max=3, step=0.1),
+        Param("size", "number", "Flake size", 1, min=0.5, max=2.5, step=0.1),
         Param("pile", "boolean", "Snow piles up at the bottom", True),
     ]
     PREVIEW = [(0, 10, 40), WHITE]
@@ -25,15 +27,18 @@ class Snow(Animation):
         self._flakes = []
 
     def _spawn(self, t):
-        return {"t0": t + random.uniform(0, 2.5), "v": random.uniform(8, 22), "len": random.uniform(2, 4)}
+        # Each flake falls down one side of the tree (a fixed angle) with a little sway.
+        return {"t0": t + random.uniform(0, 2.5), "angle": random.random(),
+                "v": random.uniform(0.12, 0.28), "sway": random.uniform(0.02, 0.06), "ph": random.uniform(0, 6.28)}
 
     def render(self, t):
         bg = self.p("background")
         fc = self.p("flake")
         count = int(self.p("count"))
         tempo = self.p("tempo")
-        n = self.n
+        size = self.p("size")
         tree = self.tree
+        n = self.n
 
         while len(self._flakes) < count:
             self._flakes.append(self._spawn(t))
@@ -42,25 +47,33 @@ class Snow(Animation):
         frame = self.frame
         for i in range(n):
             frame[i] = bg
-
         if self.p("pile"):
-            # a soft snowdrift on the bottom wrap
             for i in tree.pixels_in_ring(0):
                 frame[i] = lerp(bg, fc, 0.35)
 
+        # Flakes are blobs in (angle, height) space; nearby pixels light up by distance.
+        dz = 0.07 * size
+        da = 0.09 * size
         for idx, f in enumerate(self._flakes):
             age = t - f["t0"]
             if age < 0:
                 continue
-            head = (n - 1) - age * f["v"] * tempo      # falls toward index 0 = bottom
-            if head < -f["len"]:
+            h = 1.1 - age * f["v"] * tempo
+            if h < -0.1:
                 self._flakes[idx] = self._spawn(t)
                 continue
-            lo, hi = int(max(0, head)), int(min(n - 1, head + f["len"]))
-            for i in range(lo, hi + 1):
-                above = i - head
-                level = max(0.0, 1 - above / f["len"])
-                frame[i] = maximum(frame[i], lerp(bg, fc, level))
+            a = f["angle"] + f["sway"] * math.sin(age * 2 + f["ph"])
+            for i in range(n):
+                dh = abs(tree.z[i] - h)
+                if dh > dz:
+                    continue
+                # Near the top the tree is thin, so a flake covers more of the circumference.
+                reach = da / max(0.25, tree.radius[i]) * 0.6 + da * 0.4
+                ad = angular_distance(tree.angle[i], a)
+                if ad > reach:
+                    continue
+                level = (1 - dh / dz) * (1 - ad / reach)
+                frame[i] = maximum(frame[i], lerp(bg, fc, level * level))
 
 
 class Fire(Animation):

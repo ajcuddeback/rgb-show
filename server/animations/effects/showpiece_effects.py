@@ -36,9 +36,9 @@ class TreeStar(Animation):
         tree = self.tree
         frame = self.frame
         pulse = 0.65 + 0.35 * math.sin(t * tempo * 2 * math.pi)
-        star_from = max(0, self.n - star_size)
+        star_set = set(tree.top_pixels(star_size))
         for i in range(self.n):
-            if i >= star_from:
+            if i in star_set:
                 # Twinkly star: pulse plus a little per-pixel glitter
                 glitter = 0.85 + 0.15 * math.sin(t * 7 + self._ph[i])
                 frame[i] = scale(star, min(1.0, pulse * glitter + 0.1))

@@ -1,0 +1,96 @@
+<div class="mapper">
+  <header>
+    <h2>Map your tree</h2>
+    <button type="button" class="btn ghost icon" (click)="close()" aria-label="Close">
+      <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+    </button>
+  </header>
+
+  @switch (step()) {
+    @case ('intro') {
+      <div class="body intro">
+        <p class="lead">The app will flash each light one at a time while the camera watches, then work out where every light is in 3D. Effects like snow, fireworks and sweeps then follow the real shape of your tree.</p>
+        <ol>
+          <li>Turn the room lights off. Darker is better.</li>
+          <li>Prop the phone up so the whole tree is in frame. Don't move it while an angle is capturing (~{{ (total() * 0.2) | number:'1.0-0' }}s).</li>
+          <li>You'll repeat from {{ angles() }} spots around the tree.</li>
+        </ol>
+        <div class="field">
+          <span class="label">Angles</span>
+          <div class="segmented">
+            @for (n of [2, 3, 4]; track n) {
+              <button type="button" [class.active]="angles() === n" (click)="angles.set(n)">{{ n }}</button>
+            }
+          </div>
+          <span class="muted small">2 is enough; 4 helps a dense tree.</span>
+        </div>
+        @if (simulated) {
+          <label class="field row sim">
+            <span class="toggle"><input type="checkbox" [checked]="useSim()" (change)="useSim.set(!useSim())"><span class="track"></span></span>
+            <span>Use the simulated camera (no strand connected)</span>
+          </label>
+        }
+        @if (error(); as err) { <p class="error">{{ err }}</p> }
+        <button type="button" class="btn primary big" (click)="begin()">Open camera</button>
+      </div>
+    }
+
+    @case ('capture') {
+      <div class="body capture">
+        <div class="view" [style.aspect-ratio]="viewW() + ' / ' + viewH()" [style.max-width]="'calc(62vh * ' + (viewW() / viewH()) + ')'">
+          <div #viewport class="viewport"></div>
+          <div class="overlay">
+            @for (d of dots(); track $index) { <span class="dot" [style]="dotStyle(d)"></span> }
+          </div>
+          @if (running()) {
+            <div class="progress"><span [style.width.%]="(progress() / (total() || 1)) * 100"></span></div>
+          }
+        </div>
+
+        <div class="instructions">
+          <p class="step">Angle {{ angleIndex() + 1 }} of {{ angles() }}</p>
+          <p class="lead">{{ angleLabel() }}</p>
+          @if (running()) {
+            <p class="muted">Hold still… light {{ progress() }} of {{ total() }}</p>
+            <button type="button" class="btn" (click)="cancelCapture()">Stop</button>
+          } @else if (foundThisAngle() !== null) {
+            <p [class.warn]="foundThisAngle()! < total() * 0.6">
+              Found {{ foundThisAngle() }} of {{ total() }} lights.
+              @if (foundThisAngle()! < total() * 0.6) { Try a darker room or move closer, then retake. }
+            </p>
+            <div class="row">
+              <button type="button" class="btn" (click)="retake()">Retake</button>
+              <button type="button" class="btn primary" (click)="nextAngle()">
+                {{ angleIndex() + 1 < angles() ? 'Next angle' : 'Finish' }}
+              </button>
+            </div>
+          } @else {
+            @if (error(); as err) { <p class="error">{{ err }}</p> }
+            <button type="button" class="btn primary big" (click)="captureAngle()">Capture this angle</button>
+          }
+        </div>
+      </div>
+    }
+
+    @case ('result') {
+      <div class="body result">
+        @if (result(); as r) {
+          <h3>Done</h3>
+          <ul class="stats">
+            <li><strong>{{ r.located }}</strong> lights located in 3D</li>
+            @if (r.partial) { <li><strong>{{ r.partial }}</strong> seen from one angle only (depth estimated)</li> }
+            @if (r.missing) { <li><strong>{{ r.missing }}</strong> not seen — placed between their neighbors on the wire</li> }
+            @if (r.outliers) { <li class="muted">{{ r.outliers }} reflections ignored</li> }
+          </ul>
+          @if (r.located + r.partial < total() * 0.5) {
+            <p class="warn">That's not many. You can still save, but the map will be rough — a darker room usually fixes it.</p>
+          }
+          <div class="row">
+            <button type="button" class="btn" (click)="close()">Discard</button>
+            <button type="button" class="btn primary big" (click)="save()" [disabled]="saving()">Use this map</button>
+          </div>
+        }
+      </div>
+    }
+  }
+</div>

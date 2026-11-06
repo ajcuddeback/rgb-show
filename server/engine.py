@@ -33,6 +33,9 @@ class AnimationEngine:
         self.current_params: Dict[str, Any] = {}
         self.speed: float = 1.0
         self.power: bool = False
+        self._points = None
+        self._calibrating = False
+        self._resume_after = (False, 0.1)
 
     # ------------------------------------------------------------------ state
     def state(self) -> dict:
@@ -54,6 +57,9 @@ class AnimationEngine:
             # Reuse the current params when restarting the same animation with no explicit params
             if params is None and self.current_name == name:
                 params = self.current_params
+            if self._calibrating:
+                self._calibrating = False
+                self.controller.change_brightness(self._resume_after[1])
             self._stop_current()
             animation = cls(self.controller, self.tree, params or {}, speed=self.speed, fps=self.config.fps)
             thread = threading.Thread(target=animation.run_animation, name=f"anim-{name}", daemon=True)
@@ -105,35 +111,96 @@ class AnimationEngine:
 
     # ----------------------------------------------------------------- layout
     def layout(self) -> dict:
-        return {"numPixels": self.controller.num_pixels, "rings": list(self.tree.rings), "layout": self.config.layout}
+        return {
+            "numPixels": self.controller.num_pixels,
+            "rings": list(self.tree.rings),
+            "layout": self.config.layout,
+            "source": self.tree.source,            # "wraps" (estimated) or "camera" (mapped)
+            "points": self.tree.points(),          # normalized [x, y, z] per pixel
+        }
 
-    def set_layout(self, num_pixels: Optional[int] = None, rings: Optional[list] = None, persist: bool = True) -> dict:
-        """Change the pixel count and/or wraps at runtime. Restarts the current animation if one is playing."""
+    def set_layout(self, num_pixels: Optional[int] = None, rings: Optional[list] = None,
+                   points: Optional[list] = None, persist: bool = True) -> dict:
+        """Change the strand length and geometry at runtime. Restarts the current animation if one is playing.
+
+        Either `rings` (lights per wrap, assumed cone) or `points` (measured [x, y, z] per pixel,
+        None for unknown) describes the shape. Points win when given.
+        """
         with self._lock:
-            n = int(num_pixels) if num_pixels is not None else self.controller.num_pixels
+            n = int(num_pixels) if num_pixels is not None else (len(points) if points else self.controller.num_pixels)
             if not 1 <= n <= 5000:
                 raise ValueError("Light count must be between 1 and 5000")
-            if rings is None:
-                # keep the current wrap proportions, rescaled to the new count
-                base = list(self.tree.rings) if self.tree.n == self.controller.num_pixels else DEFAULT_RING_PROPORTIONS
-                rings = scale_rings(base, n)
-            rings = [int(r) for r in rings]
-            if not rings or any(r < 1 for r in rings):
-                raise ValueError("Every wrap needs at least one light")
-            if sum(rings) != n:
-                raise ValueError(f"Wraps add up to {sum(rings)} lights but the strand has {n}")
+            if points is not None:
+                if len(points) != n:
+                    raise ValueError(f"Got positions for {len(points)} lights but the strand has {n}")
+                known = sum(1 for p in points if p is not None)
+                if known < max(2, n // 4):
+                    raise ValueError(f"Only {known} of {n} lights were located; need at least {max(2, n // 4)}")
+                tree = TreeLayout.from_points(points)
+                self._points = points
+            else:
+                if rings is None:
+                    base = list(self.tree.rings) if (self.tree.source == "wraps" and self.tree.n == self.controller.num_pixels) else DEFAULT_RING_PROPORTIONS
+                    rings = scale_rings(base, n)
+                rings = [int(r) for r in rings]
+                if not rings or any(r < 1 for r in rings):
+                    raise ValueError("Every wrap needs at least one light")
+                if sum(rings) != n:
+                    raise ValueError(f"Wraps add up to {sum(rings)} lights but the strand has {n}")
+                tree = TreeLayout(rings)
+                self._points = None
+                self.config.rings = rings
 
             was_on = self.power and self._animation is not None
             self._stop_current()
             self.controller.resize(n)
             self.config.num_pixels = n
-            self.config.rings = rings
-            self.tree = TreeLayout(rings)
+            self.tree = tree
             if was_on and self.current_name:
                 self.start(self.current_name, self.current_params, persist=False)
         if persist:
             self.save()
         return self.layout()
+
+    # ------------------------------------------------------------ calibration
+    def calibration_start(self, brightness: float = 0.6) -> dict:
+        """Enter mapping mode: stop the show, remember it, lights off, fixed brightness."""
+        with self._lock:
+            if not self._calibrating:
+                self._calibrating = True
+                self._resume_after = (self.power and self._animation is not None, self.controller.brightness)
+            self._stop_current()
+            self.controller.change_brightness(max(0.05, min(1.0, float(brightness))))
+            self.controller.turn_off_all_lights()
+        return {"calibrating": True, "numPixels": self.controller.num_pixels}
+
+    def calibration_light(self, index: Optional[int], color=(255, 255, 255), all_on: bool = False) -> dict:
+        """Light exactly one pixel (or all / none). Only valid in mapping mode."""
+        with self._lock:
+            if not self._calibrating:
+                raise RuntimeError("Not in mapping mode; call calibration start first")
+            n = self.controller.num_pixels
+            frame = [(0, 0, 0)] * n
+            if all_on:
+                frame = [tuple(color)] * n
+            elif index is not None:
+                if not 0 <= int(index) < n:
+                    raise ValueError(f"index must be 0..{n - 1}")
+                frame[int(index)] = tuple(color)
+            self.controller.show_frame(frame)
+        return {"index": index, "all": all_on}
+
+    def calibration_stop(self) -> dict:
+        with self._lock:
+            if not self._calibrating:
+                return self.state()
+            self._calibrating = False
+            was_on, brightness = self._resume_after
+            self.controller.change_brightness(brightness)
+            self.controller.turn_off_all_lights()
+            if was_on and self.current_name:
+                self.start(self.current_name, self.current_params, persist=False)
+        return self.state()
 
     # ---------------------------------------------------------------- internal
     def _stop_current(self) -> None:
@@ -158,7 +225,8 @@ class AnimationEngine:
             "speed": self.speed,
             "brightness": self.controller.brightness,
             "power": self.power,
-            "layout": {"numPixels": self.controller.num_pixels, "rings": list(self.tree.rings)},
+            "layout": {"numPixels": self.controller.num_pixels, "rings": list(self.tree.rings),
+                       "points": self._points, "source": self.tree.source},
         }
         try:
             tmp = path + ".tmp"
@@ -180,9 +248,12 @@ class AnimationEngine:
             return
         try:
             layout = data.get("layout") or {}
-            if layout.get("numPixels") and layout.get("rings"):
+            if layout.get("numPixels"):
                 try:
-                    self.set_layout(layout["numPixels"], layout["rings"], persist=False)
+                    if layout.get("points"):
+                        self.set_layout(layout["numPixels"], points=layout["points"], persist=False)
+                    elif layout.get("rings"):
+                        self.set_layout(layout["numPixels"], layout["rings"], persist=False)
                 except ValueError as exc:
                     log.warning("Ignoring saved layout: %s", exc)
             if "brightness" in data:
