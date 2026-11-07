@@ -47,9 +47,19 @@
           }
         </div>
 
+        <div class="camera-row">
+          <span class="muted small">{{ cameraLabel() || 'Camera' }}</span>
+          @if (cameraCount() > 1 && !running()) {
+            <button type="button" class="btn ghost sm" (click)="switchCamera()">
+              <svg viewBox="0 0 24 24"><path d="M4 8a2 2 0 0 1 2-2h2l1.5-2h5L16 6h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9.5 12.5a2.5 2.5 0 0 1 4.3-1.8M14.5 12.5a2.5 2.5 0 0 1-4.3 1.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+              Switch camera
+            </button>
+          }
+        </div>
         <div class="instructions">
           <p class="step">Angle {{ angleIndex() + 1 }} of {{ angles() }}</p>
           <p class="lead">{{ angleLabel() }}</p>
+          @if (!running() && foundThisAngle() === null) { <p class="muted small">If the view looks zoomed in, tap “Switch camera” until you see the whole tree.</p> }
           @if (running()) {
             <p class="muted">Hold still… light {{ progress() }} of {{ total() }}</p>
             <button type="button" class="btn" (click)="cancelCapture()">Stop</button>

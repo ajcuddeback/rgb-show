@@ -35,6 +35,8 @@ export class TreeMapperComponent implements AfterViewInit, OnDestroy {
   saving = signal(false);
   viewW = signal(320);
   viewH = signal(240);
+  cameraLabel = signal('');
+  cameraCount = signal(0);
 
   private source: FrameSource | null = null;
   private views: Observation[][] = [];
@@ -82,6 +84,7 @@ export class TreeMapperComponent implements AfterViewInit, OnDestroy {
       if (!host) { throw new Error('Could not show the camera preview.'); }
       host.innerHTML = '';
       host.appendChild(this.source.element);
+      this.syncCameraInfo();
     } catch (e) {
       this.error.set((e as Error).message || 'Could not start the camera.');
     }
@@ -133,6 +136,30 @@ export class TreeMapperComponent implements AfterViewInit, OnDestroy {
   }
 
   cancelCapture(): void { this.cancelled = true; }
+
+  async switchCamera(): Promise<void> {
+    if (!(this.source instanceof DeviceCamera) || this.running()) { return; }
+    try {
+      await this.source.switchCamera();
+      this.viewW.set(this.source.width);
+      this.viewH.set(this.source.height);
+      this.syncCameraInfo();
+      this.dots.set([]);
+      this.foundThisAngle.set(null);
+    } catch (e) {
+      this.error.set((e as Error).message || 'Could not switch camera.');
+    }
+  }
+
+  private syncCameraInfo(): void {
+    if (this.source instanceof DeviceCamera) {
+      this.cameraLabel.set(this.source.activeLabel);
+      this.cameraCount.set(this.source.cameras.length);
+    } else {
+      this.cameraLabel.set('Simulated camera');
+      this.cameraCount.set(0);
+    }
+  }
 
   retake(): void {
     this.foundThisAngle.set(null);

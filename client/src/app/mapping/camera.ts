@@ -23,6 +23,10 @@ export class DeviceCamera implements FrameSource {
   width = 320;
   height = 240;
   readonly settleMs = 180;
+  /** Back-facing cameras found after permission was granted (labels need permission). */
+  cameras: MediaDeviceInfo[] = [];
+  activeDeviceId: string | null = null;
+  activeLabel = '';
 
   constructor() {
     this.element = document.createElement('video');
@@ -31,23 +35,53 @@ export class DeviceCamera implements FrameSource {
     this.element.autoplay = true;
   }
 
-  async start(): Promise<void> {
-    this.stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
-      audio: false,
-    });
+  async start(deviceId?: string): Promise<void> {
+    this.stop();
+    // Samsung/Chrome quirk: facingMode "environment" + a resolution hint often lands on the
+    // telephoto lens. So: no resolution hint, and once we have permission (labels), reopen the
+    // main wide camera by deviceId.
+    const video: MediaTrackConstraints = deviceId ? { deviceId: { exact: deviceId } } : { facingMode: { ideal: 'environment' } };
+    this.stream = await navigator.mediaDevices.getUserMedia({ video, audio: false });
     this.element.srcObject = this.stream;
-    await this.element.play();
+    await this.element.play().catch(() => undefined);
+    await this.waitForMetadata();
+
     const track = this.stream.getVideoTracks()[0];
-    // Fixed exposure/focus help a lot; silently ignore where unsupported (most iPhones).
+    this.activeDeviceId = track.getSettings().deviceId ?? null;
+    this.activeLabel = track.label;
+
+    if (!deviceId) {
+      await this.enumerate();
+      const best = this.pickMainCamera();
+      if (best && best.deviceId !== this.activeDeviceId) {
+        return this.start(best.deviceId);
+      }
+    } else if (!this.cameras.length) {
+      await this.enumerate();
+    }
+
+    // Widest view: zoom all the way out where the browser exposes zoom; fixed exposure/focus if available.
     try {
-      await track.applyConstraints({ advanced: [{ exposureMode: 'manual', focusMode: 'manual', whiteBalanceMode: 'manual' } as MediaTrackConstraintSet] });
+      const caps = (track.getCapabilities?.() ?? {}) as MediaTrackCapabilities & { zoom?: { min?: number } };
+      const adv: Record<string, unknown>[] = [];
+      if (caps.zoom && typeof caps.zoom.min === 'number') { adv.push({ zoom: caps.zoom.min }); }
+      adv.push({ exposureMode: 'manual', focusMode: 'manual', whiteBalanceMode: 'manual' });
+      for (const a of adv) { await track.applyConstraints({ advanced: [a as MediaTrackConstraintSet] }).catch(() => undefined); }
     } catch { /* not supported */ }
+
     const vw = this.element.videoWidth || 640, vh = this.element.videoHeight || 480;
     this.width = 320;
     this.height = Math.round((320 * vh) / vw);
     this.canvas.width = this.width;
     this.canvas.height = this.height;
+  }
+
+  /** Cycle to the next back camera (for phones where the auto-pick is wrong). */
+  async switchCamera(): Promise<void> {
+    if (this.cameras.length < 2) { return; }
+    const i = this.cameras.findIndex(c => c.deviceId === this.activeDeviceId);
+    const next = this.cameras[(i + 1) % this.cameras.length];
+    await this.start(next.deviceId);
   }
 
   stop(): void {
@@ -60,6 +94,32 @@ export class DeviceCamera implements FrameSource {
     ctx.drawImage(this.element, 0, 0, this.width, this.height);
     const img = ctx.getImageData(0, 0, this.width, this.height);
     return luma(img.data, this.width, this.height);
+  }
+
+  private async waitForMetadata(): Promise<void> {
+    for (let i = 0; i < 100 && !(this.element.videoWidth > 0); i++) {
+      await new Promise(r => setTimeout(r, 30));
+    }
+  }
+
+  private async enumerate(): Promise<void> {
+    try {
+      const all = await navigator.mediaDevices.enumerateDevices();
+      const vids = all.filter(d => d.kind === 'videoinput');
+      const back = vids.filter(d => /back|rear|environment|facing back/i.test(d.label));
+      // Android labels look like "camera2 0, facing back"; keep them in id order so 0 (main) comes first.
+      const num = (d: MediaDeviceInfo) => { const m = /camera2?\s*(\d+)/i.exec(d.label); return m ? Number(m[1]) : 99; };
+      this.cameras = (back.length ? back : vids).sort((a, b) => num(a) - num(b));
+    } catch { this.cameras = []; }
+  }
+
+  private pickMainCamera(): MediaDeviceInfo | null {
+    if (!this.cameras.length) { return null; }
+    const isAux = (l: string) => /tele|ultra|zoom|depth|macro|wide angle|periscope/i.test(l);
+    // iOS: "Back Camera" is the main wide. Android: the lowest-numbered back camera is.
+    return this.cameras.find(c => /^back camera$/i.test(c.label))
+      ?? this.cameras.find(c => !isAux(c.label))
+      ?? this.cameras[0];
   }
 }
 
