@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # One-shot setup for a Raspberry Pi.
 #
-#   ./setup.sh            install python deps + systemd service + nginx
-#   ./setup.sh --no-nginx skip nginx (serve straight from gunicorn on :8000)
+#   ./setup.sh               install python deps + systemd service + nginx + Spotify Connect
+#   ./setup.sh --no-nginx    skip nginx (serve straight from gunicorn on :8000)
+#   ./setup.sh --no-spotify  skip the raspotify (Spotify Connect) receiver
 #
 # The Angular UI is pre-built and committed in ./templates, so Node is NOT
 # required on the Pi. Rebuild it on your dev machine with `cd client && npm run build`.
@@ -11,11 +12,16 @@ set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WITH_NGINX=1
-[[ "${1:-}" == "--no-nginx" ]] && WITH_NGINX=0
+WITH_SPOTIFY=1
+for arg in "$@"; do
+  [[ "$arg" == "--no-nginx" ]] && WITH_NGINX=0
+  [[ "$arg" == "--no-spotify" ]] && WITH_SPOTIFY=0
+done
 
 echo "==> Installing system packages"
 sudo apt-get update -qq
-PKGS="python3 python3-pip python3-venv python3-dev"
+# libportaudio2 + alsa-utils: audio output / input for the music effects
+PKGS="python3 python3-pip python3-venv python3-dev libportaudio2 alsa-utils curl"
 [[ $WITH_NGINX -eq 1 ]] && PKGS="$PKGS nginx"
 sudo apt-get install -y -qq $PKGS >/dev/null
 
@@ -52,6 +58,20 @@ if systemctl is-enabled --quiet rgb-show-ha 2>/dev/null; then
   sudo systemctl restart rgb-show-ha
 fi
 
+if [[ $WITH_SPOTIFY -eq 1 ]]; then
+  echo "==> Installing Spotify Connect receiver (raspotify)"
+  if ! command -v librespot >/dev/null 2>&1 && ! dpkg -s raspotify >/dev/null 2>&1; then
+    # Official installer from https://github.com/dtcooper/raspotify (adds their apt repo and installs the package)
+    curl -sL https://dtcooper.github.io/raspotify/install.sh | sudo sh
+  fi
+  sudo mkdir -p /var/lib/rgb-show
+  [[ -p /var/lib/rgb-show/audio.fifo ]] || sudo mkfifo /var/lib/rgb-show/audio.fifo
+  sudo chmod 666 /var/lib/rgb-show/audio.fifo
+  sudo cp "$REPO_DIR/deploy/raspotify.conf" /etc/raspotify/conf
+  sudo systemctl enable raspotify >/dev/null 2>&1 || true
+  sudo systemctl restart raspotify || echo "   (raspotify did not start; check: journalctl -u raspotify -n 30)"
+fi
+
 if [[ $WITH_NGINX -eq 1 ]]; then
   echo "==> Configuring nginx"
   sudo cp "$REPO_DIR/deploy/nginx-rgb-show.conf" /etc/nginx/sites-available/rgb-show
@@ -69,6 +89,11 @@ if curl -fsS http://127.0.0.1:8000/api/state >/dev/null; then
   echo "✅ rgb-show is running."
   [[ $WITH_NGINX -eq 1 ]] && echo "   Open: http://$IP/" || echo "   Open: http://$IP:8000/"
   echo "   Logs: journalctl -u rgb-show -f"
+  if [[ $WITH_SPOTIFY -eq 1 ]]; then
+    echo
+    echo "   Spotify: open the Spotify app, tap the device picker, choose 'Christmas Tree'."
+    echo "   Then in the web app: Music -> Source -> Spotify. (Needs a USB speaker/DAC or HDMI audio on the Pi.)"
+  fi
   if ! systemctl is-enabled --quiet rgb-show-ha 2>/dev/null; then
     echo
     echo "   Home Assistant (optional): edit /etc/rgb-show-ha.env with your MQTT broker, then"

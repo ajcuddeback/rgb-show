@@ -62,6 +62,7 @@ class Config:
     autostart: bool = True             # resume the last running animation on boot
     state_file: str = "state.json"
     presets_file: str = "presets.json"
+    audio_fifo: str = "/var/lib/rgb-show/audio.fifo"   # where librespot (Spotify Connect) writes raw PCM
     host: str = "0.0.0.0"
     port: int = 5000
     extra: dict = field(default_factory=dict)
@@ -83,6 +84,7 @@ class Config:
             autostart=_env_bool("RGB_AUTOSTART", True),
             state_file=os.path.join(data_dir, os.environ.get("RGB_STATE_FILE", "state.json")),
             presets_file=os.path.join(data_dir, os.environ.get("RGB_PRESETS_FILE", "presets.json")),
+            audio_fifo=os.environ.get("RGB_AUDIO_FIFO", "/var/lib/rgb-show/audio.fifo"),
             host=os.environ.get("RGB_HOST", "0.0.0.0"),
             port=_env_int("RGB_PORT", 5000),
         )

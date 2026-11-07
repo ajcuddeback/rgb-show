@@ -69,6 +69,18 @@ def select_options(*pairs) -> List[Dict[str, str]]:
     return [{"value": v, "label": l} for v, l in pairs]
 
 
+class _NullAudioFeatures:
+    sync = False
+
+    @staticmethod
+    def features() -> Dict[str, Any]:
+        return {"level": 0.0, "bass": 0.0, "mid": 0.0, "treble": 0.0, "onset": 0.0, "beat": False,
+                "beat_env": 0.0, "bpm": 0.0, "phase": 0.0, "active": False, "ts": 0.0}
+
+
+_NULL_AUDIO = _NullAudioFeatures()
+
+
 class Animation:
     """Base class. Subclasses set NAME/LABEL/DESCRIPTION/CATEGORY/PARAMS and implement render()."""
 
@@ -80,9 +92,12 @@ class Animation:
     FPS: Optional[int] = None  # override global frame cap (static effects can go low)
     PREVIEW: List[Color] = []  # a few colors for the UI card chip
 
-    def __init__(self, controller, tree, params: Dict[str, Any], speed: float = 1.0, fps: int = 30):
+    def __init__(self, controller, tree, params: Dict[str, Any], speed: float = 1.0, fps: int = 30, audio=None):
         self.controller = controller
         self.tree = tree
+        self.audio = audio if audio is not None else _NULL_AUDIO
+        # Per-frame audio features (level/bass/mid/treble/beat/beat_env/bpm/phase/active). Zeros when audio is off.
+        self.af: Dict[str, Any] = self.audio.features()
         self.n = controller.num_pixels
         self.frame: List[Color] = [(0, 0, 0)] * self.n
         self.speed = max(0.05, float(speed))
@@ -153,10 +168,20 @@ class Animation:
                 now = time.monotonic()
                 dt = min(now - last, 0.25)   # don't "catch up" after a stall
                 last = now
-                self.t += dt * self.speed
+                self.af = self.audio.features()
+                tempo = 1.0
+                sync = getattr(self.audio, "sync", False) and self.af.get("active")
+                if sync and self.af.get("bpm"):
+                    tempo = max(0.5, min(2.0, self.af["bpm"] / 120.0))   # lock pace to the song
+                self.t += dt * self.speed * tempo
                 with self._param_lock:
                     self.render(self.t)
-                self.controller.show_frame(self.frame)
+                frame = self.frame
+                if sync:
+                    # pump brightness on the beat
+                    g = 0.55 + 0.45 * float(self.af.get("beat_env", 0.0))
+                    frame = [(int(r * g), int(gg * g), int(b * g)) for r, gg, b in frame]
+                self.controller.show_frame(frame)
                 # Sleep the remainder of the frame but wake instantly on stop()
                 elapsed = time.monotonic() - now
                 self._stop.wait(max(0.0, interval - elapsed))

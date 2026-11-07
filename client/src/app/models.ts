@@ -41,8 +41,35 @@ export interface TreeConfig {
   points: [number, number, number][];
 }
 
+export interface AudioSettings {
+  source: string;
+  output: string;
+  sensitivity: number;
+  sync: boolean;
+  demoBpm: number;
+}
+
+export interface AudioFeatures {
+  level: number; bass: number; mid: number; treble: number;
+  beat_env: number; bpm: number; active: boolean; onset: number;
+}
+
+export interface AudioStatus extends AudioSettings {
+  streaming: boolean;
+  error: string | null;
+  playback: string;
+  latencyMs: number;
+  sources: { id: string; label: string; hint?: string }[];
+  outputs: { id: string; label: string }[];
+  devicesAvailable: boolean;
+  devicesError: string;
+  fifo: string;
+  features: AudioFeatures;
+}
+
 export interface RgbState {
   power: boolean;
+  audio?: AudioSettings;
   animation: string | null;
   params: Params;
   speed: number;

@@ -22,10 +22,11 @@ log = logging.getLogger(__name__)
 
 
 class AnimationEngine:
-    def __init__(self, controller, tree, config):
+    def __init__(self, controller, tree, config, audio=None):
         self.controller = controller
         self.tree = tree
         self.config = config
+        self.audio = audio            # AudioEngine or None
         self._lock = threading.RLock()
         self._animation: Optional[Animation] = None
         self._thread: Optional[threading.Thread] = None
@@ -61,7 +62,7 @@ class AnimationEngine:
                 self._calibrating = False
                 self.controller.change_brightness(self._resume_after[1])
             self._stop_current()
-            animation = cls(self.controller, self.tree, params or {}, speed=self.speed, fps=self.config.fps)
+            animation = cls(self.controller, self.tree, params or {}, speed=self.speed, fps=self.config.fps, audio=self.audio)
             thread = threading.Thread(target=animation.run_animation, name=f"anim-{name}", daemon=True)
             self._animation, self._thread = animation, thread
             self.current_name, self.current_params = name, dict(animation.params)
@@ -227,6 +228,7 @@ class AnimationEngine:
             "power": self.power,
             "layout": {"numPixels": self.controller.num_pixels, "rings": list(self.tree.rings),
                        "points": self._points, "source": self.tree.source},
+            "audio": self.audio.settings() if self.audio else None,
         }
         try:
             tmp = path + ".tmp"
@@ -256,6 +258,16 @@ class AnimationEngine:
                         self.set_layout(layout["numPixels"], layout["rings"], persist=False)
                 except ValueError as exc:
                     log.warning("Ignoring saved layout: %s", exc)
+            if self.audio and isinstance(data.get("audio"), dict):
+                try:
+                    a = data["audio"]
+                    self.audio.set(sensitivity=a.get("sensitivity"), sync=a.get("sync"), output=a.get("output"),
+                                   demo_bpm=a.get("demoBpm"))
+                    # Only auto-resume the Spotify tap: a demo loop or a mic should be a deliberate choice.
+                    if a.get("source") == "spotify":
+                        self.audio.set(source="spotify")
+                except Exception as exc:
+                    log.warning("Could not restore audio settings: %s", exc)
             if "brightness" in data:
                 self.controller.change_brightness(float(data["brightness"]))
             if "speed" in data:

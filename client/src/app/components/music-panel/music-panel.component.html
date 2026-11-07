@@ -1,0 +1,67 @@
+<div class="head">
+  <h3>Music</h3>
+  <span class="muted small status" [class.live]="live()?.active">{{ status() }}</span>
+</div>
+
+@if (audio(); as a) {
+  <label class="field">
+    <span class="label">Source</span>
+    <select [value]="a.source" (change)="setSource($event)">
+      @for (s of a.sources; track s.id) { <option [value]="s.id">{{ s.label }}</option> }
+    </select>
+  </label>
+  @if (a.source === 'spotify') {
+    <p class="muted small hint">Open Spotify on your phone, tap the device picker, choose <strong>Christmas Tree</strong>. Sound plays from the Pi's speaker and the lights follow it.</p>
+  }
+
+  <div class="meters" [class.idle]="!live()?.active">
+    @for (b of bars(); track b.key) {
+      <div class="meter">
+        <div class="bar"><span [style.height.%]="b.v * 100" [class]="b.key"></span></div>
+        <span class="muted small">{{ b.label }}</span>
+      </div>
+    }
+    <div class="beat" [style.opacity]="0.15 + 0.85 * (live()?.beat_env ?? 0)"></div>
+  </div>
+
+  <label class="sync row" [class.disabled]="!on()">
+    <span class="toggle">
+      <input type="checkbox" [checked]="a.sync" (change)="toggleSync()" [disabled]="!on()">
+      <span class="track"></span>
+    </span>
+    <span>
+      <span class="t">Sync every animation to the music</span>
+      <span class="muted small">Pace follows the tempo, brightness pumps on the beat</span>
+    </span>
+  </label>
+
+  <div class="field">
+    <div class="label-row"><span class="label">Sensitivity</span><span class="muted small">{{ (a.sensitivity * 100) | number:'1.0-0' }}%</span></div>
+    <input type="range" min="20" max="400" step="10" [value]="a.sensitivity * 100" [style.--fill]="((a.sensitivity * 100 - 20) / 380 * 100) + '%'" (input)="setSensitivity($event)">
+  </div>
+
+  @if (a.source === 'synthetic') {
+    <div class="field">
+      <div class="label-row"><span class="label">Demo tempo</span><span class="muted small">{{ a.demoBpm }} BPM</span></div>
+      <input type="range" min="60" max="180" step="1" [value]="a.demoBpm" [style.--fill]="((a.demoBpm - 60) / 120 * 100) + '%'" (change)="setDemoBpm($event)">
+    </div>
+  }
+
+  <button type="button" class="btn ghost sm adv" (click)="showAdvanced.set(!showAdvanced())">{{ showAdvanced() ? 'Hide details' : 'Details' }}</button>
+  @if (showAdvanced()) {
+    <div class="advanced muted small">
+      <label class="field">
+        <span class="label">Speaker</span>
+        <select [value]="a.output" (change)="setOutput($event)">
+          @for (o of a.outputs; track o.id) { <option [value]="o.id">{{ o.label }}</option> }
+        </select>
+      </label>
+      <p>Playback: {{ a.playback }} · latency {{ a.latencyMs }} ms</p>
+      @if (!a.devicesAvailable) { <p>Microphones / loopback devices need PortAudio on the Pi (<code>apt install libportaudio2</code>), then restart.</p> }
+      <p>Spotify FIFO: <code>{{ a.fifo }}</code></p>
+      <button type="button" class="btn ghost sm" (click)="refresh()">Refresh</button>
+    </div>
+  }
+} @else {
+  <p class="muted small">Couldn't load audio status. <button type="button" class="btn ghost sm" (click)="refresh()">Retry</button></p>
+}

@@ -2,6 +2,10 @@
 flask>=2.3
 gunicorn>=20.1
 
+# Audio analysis (music-reactive effects). sounddevice needs the PortAudio library: apt install libportaudio2
+numpy>=1.24
+sounddevice>=0.4
+
 # Raspberry Pi hardware (skipped automatically when unavailable; set RGB_SIMULATE=1 to develop elsewhere)
 rpi_ws281x; platform_machine in "armv6l armv7l aarch64"
 adafruit-blinka; platform_machine in "armv6l armv7l aarch64"

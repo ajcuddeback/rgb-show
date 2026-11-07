@@ -126,3 +126,27 @@ def test_old_preset_params_are_ignored_not_clamped():
     assert "size" not in fw and fw["burst"] == 0.7
     ic = registry.get("icicles").coerce_params({"length": 5})
     assert "length" not in ic and ic["drip_length"] == 0.18
+
+
+class _LoudAudio:
+    sync = False
+    def __init__(self):
+        self.k = 0
+    def features(self):
+        self.k += 1
+        return {"active": True, "level": 0.8, "bass": 0.9, "mid": 0.5, "treble": 0.3, "onset": 0.5,
+                "beat": self.k % 10 == 0, "beat_env": 1.0 if self.k % 10 == 0 else 0.2, "bpm": 128.0, "phase": (self.k % 10) / 10, "ts": 0}
+
+
+@pytest.mark.parametrize("name,cls", [(n, c) for n, c in ALL if c.CATEGORY == "Music"], ids=[n for n, c in ALL if c.CATEGORY == "Music"])
+def test_music_effects_react(name, cls):
+    controller = NeoPixelController(100, simulate=True)
+    tree = TreeLayout(Config(num_pixels=100).resolved_rings())
+    anim = cls(controller, tree, {}, fps=30, audio=_LoudAudio())
+    lit = 0
+    for step in range(60):
+        anim.af = anim.audio.features()
+        anim.render(step / 30)
+        lit += sum(1 for p in anim.frame if sum(p) > 30)
+        assert all(0 <= c <= 255 for px in anim.frame for c in px)
+    assert lit > 0

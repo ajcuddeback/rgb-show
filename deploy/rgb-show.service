@@ -28,7 +28,10 @@ Environment=RGB_TREE_RINGS=32,26,20,14,8
 Environment=RGB_BRIGHTNESS=0.1
 Environment=RGB_FPS=30
 # Optional: Environment=RGB_GAMMA=2.2  (smoother fades; colors render dimmer)
+Environment=RGB_AUDIO_FIFO=/var/lib/rgb-show/audio.fifo
 Environment=PYTHONUNBUFFERED=1
+# Spotify (librespot) writes raw audio into this FIFO; the server reads it.
+ExecStartPre=/bin/sh -c 'mkdir -p /var/lib/rgb-show && [ -p /var/lib/rgb-show/audio.fifo ] || mkfifo /var/lib/rgb-show/audio.fifo; chmod 666 /var/lib/rgb-show/audio.fifo'
 # Exactly ONE worker: the strand can only be driven by a single process.
 ExecStart=/home/pi/rgb-show/server/.venv/bin/python -m gunicorn --workers 1 --threads 4 --bind 127.0.0.1:8000 --timeout 60 app:app
 Restart=always

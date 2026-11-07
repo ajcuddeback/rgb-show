@@ -3,13 +3,14 @@
 Control a strand of NeoPixels (WS2811 / WS2812) wrapped around a Christmas tree from your phone.
 Flask + Python on a Raspberry Pi drives the lights; a small Angular app (pre-built, no Node needed on the Pi) is the remote.
 
-- **36 animations** that understand the *shape* of the tree (height, angle, wraps): spirals, climbing rings, falling snow, fireworks that launch up the tree, aurora curtains, a pulsing tree-top star, glinting ornaments, a rotating beacon, fireflies, icicles, a starry night, and true-3D sweeps, pulses and orbits.
+- **41 animations** that understand the *shape* of the tree (height, angle, wraps): spirals, climbing rings, falling snow, fireworks that launch up the tree, aurora curtains, a pulsing tree-top star, glinting ornaments, a rotating beacon, fireflies, icicles, a starry night, and true-3D sweeps, pulses and orbits.
 - **Every animation is customizable** — colors (with palettes), speeds, densities, directions — and changes apply **live** while it plays.
 - **Live preview** of the tree in the browser, mirroring exactly what the strand is showing.
 - **Presets**: save and recall your favorite looks.
 - **Installable**: it's a PWA — add it to your phone's home screen and it opens like an app, full screen, and updates itself when you deploy.
 - **Map your tree with your phone's camera**: the app flashes each light while the camera watches, from two or more angles, and solves every light's 3D position. Every effect then follows the real shape of *your* tree. (Or just type lights-per-wrap in the app — no config files either way.)
 - **Survives reboots**: last animation, brightness and speed are restored on boot.
+- **Music**: make the Pi a Spotify Connect speaker, and the lights follow the song — five music-reactive effects plus a one-tap *sync every animation to the music* mode (tempo-locked, pumping on the beat). A built-in demo beat means you can see it without a speaker.
 - **Home Assistant** integration: shows up as a light with every animation as an effect, plus presets and speed. One service, zero HA config.
 - **Runs anywhere**: without NeoPixel hardware the server falls back to a simulator, so you can develop on a laptop.
 
@@ -100,6 +101,30 @@ and the current animation restarts on the new geometry.
 - **Save as preset** stores the current animation + settings on the Pi.
 - The power button turns the lights off and remembers what was playing, so pressing it again resumes.
 - **Install it**: on iPhone, Share → *Add to Home Screen*; on Android/desktop Chrome, use the install icon in the address bar. Installed copies pick up new deploys automatically on next open. (Chrome's install prompt needs HTTPS or `localhost`; iOS Add-to-Home-Screen works over plain HTTP too.)
+
+## Music
+
+**How it works.** `raspotify` turns the Pi into a Spotify Connect device called **Christmas Tree**. Instead of
+playing straight to the sound card, librespot writes raw PCM into a FIFO (`/var/lib/rgb-show/audio.fifo`); the
+rgb-show server reads that stream, analyzes it (FFT → bass/mid/treble, onset detection → beats, autocorrelation →
+BPM) and plays it out the speaker itself. Lights and sound are therefore one stream, and the server delays the
+features by the measured output latency so the flash lands on the kick. ~2 % CPU on a Pi 5.
+
+**You need a speaker.** The Pi 5 has no headphone jack: use a USB speaker / USB DAC, HDMI audio, or a DAC HAT.
+Pick it under *Music → Details → Speaker* if it isn't the system default.
+
+**Using it**
+1. `./setup.sh` installs raspotify and the config (skip with `--no-spotify`).
+2. In the Spotify app on your phone, tap the device picker and choose **Christmas Tree**.
+3. In the web app's **Music** card, set *Source* to **Spotify**. The meters start moving; the status shows the BPM.
+4. Either play one of the **Music** effects (VU Meter, Beat Pulse, Spectrum, Energy Glow, Beat Chase) or flip
+   **Sync every animation to the music** to make *any* effect follow the tempo and pump on the beat.
+
+*Sensitivity* scales how hard the lights react (auto-gain already evens out quiet vs. loud songs).
+**Demo beat** is a built-in drum loop so you can try everything without Spotify or a speaker; other input devices
+(a USB mic, a loopback) appear in the source list when PortAudio is installed (`setup.sh` does that).
+
+Environment: `RGB_AUDIO_FIFO` (default `/var/lib/rgb-show/audio.fifo`) must match `LIBRESPOT_DEVICE` in `/etc/raspotify/conf`.
 
 ## Home Assistant
 
@@ -208,6 +233,7 @@ class Heartbeat(Animation):
         self.fill(gradient(self.p("colors"), 1 - level, wrap=False))
 ```
 
+`self.af` holds the current audio features (`level`, `bass`, `mid`, `treble`, `beat`, `beat_env`, `bpm`, `phase`, `active`) for music-reactive effects.
 `self.tree.x[i]`, `.y[i]`, `.z[i]` (normalized 3D; front of the tree is -y), `.height[i]` (= z), `.angle[i]` (turns around
 the trunk, 0..1), `.radius[i]` and `.ring_of[i]` (height band) tell you where pixel `i` is. `tree.pixels_in_ring(r)` and
 `tree.top_pixels(k)` are handy. These come from the camera map when there is one, otherwise from the cone estimate,
@@ -226,6 +252,7 @@ Param types: `color`, `colors`, `number`, `select`, `boolean`.
 | POST | `/api/calibration/start` | `{"brightness": 0.6}` | Enter mapping mode: show paused, lights off |
 | POST | `/api/calibration/light` | `{"index": 42}` / `{"all": true}` / `{"index": null}` | Light exactly one pixel (or all / none) |
 | POST | `/api/calibration/stop` | | Leave mapping mode and resume what was playing |
+| GET/POST | `/api/audio` | `{"source": "spotify"|"synthetic"|"off"|"device:N", "sensitivity": 1.0, "sync": true, "output": "default", "demoBpm": 120}` | Music source, sensitivity, sync-to-music; GET includes live features and device lists |
 | POST | `/api/power` | `{"on": true}` | Off remembers; on resumes |
 | POST | `/api/brightness` | `{"brightness": 0.3}` | 0–1 |
 | POST | `/api/speed` | `{"speed": 1.5}` | Global multiplier |
@@ -246,6 +273,7 @@ curl -X POST http://tree.local/api/animations/twinkle/start -H 'content-type: ap
 - `server/app.py` — Flask app and API
 - `server/engine.py` — owns the running animation thread, persistence
 - `server/ha_bridge.py` — optional Home Assistant MQTT bridge
+- `server/audio/` — analyzer (FFT/beats/BPM), sources (Spotify FIFO, demo loop, input devices), playback
 - `server/tree.py` — pixel → 3D position / height / angle / band geometry (from camera map or cone estimate)
 - `server/animations/` — base class, color helpers, registry, `effects/*`
 - `client/` — Angular 17 UI (standalone components + signals); `src/app/mapping/` holds the camera pipeline and 3D solver

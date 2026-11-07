@@ -1,7 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Subject, catchError, debounceTime, firstValueFrom, forkJoin, map, of, switchMap } from 'rxjs';
-import { AnimationDef, Params, Preset, RgbState, RGB } from '../models';
+import { AnimationDef, AudioFeatures, AudioStatus, Params, Preset, RgbState, RGB } from '../models';
 
 const CATEGORY_ORDER = ['Static', 'Motion', 'Sparkle', 'Nature', 'Showpiece'];
 
@@ -24,6 +24,9 @@ export class RgbService {
   readonly lastTap = signal(0);
   /** Full-screen camera mapping flow visible. */
   readonly mapperOpen = signal(false);
+  /** Audio: settings/status and the live features that ride along with each preview frame. */
+  readonly audio = signal<AudioStatus | null>(null);
+  readonly audioLive = signal<AudioFeatures | null>(null);
 
   readonly power = computed(() => this.state()?.power ?? false);
   readonly current = computed(() => this.state()?.animation ?? null);
@@ -83,6 +86,7 @@ export class RgbService {
       this.animations.set(animations.animations);
       this.presets.set(presets.presets);
       this.applyState(state, true);
+      void this.loadAudio();
       if (!this.selected()) {
         this.selected.set(state.animation ?? animations.animations[0]?.name ?? null);
       }
@@ -106,8 +110,9 @@ export class RgbService {
   }
 
   getFrame() {
-    return this.http.get<{ n: number; hex: string; brightness: number }>('/api/frame').pipe(
+    return this.http.get<{ n: number; hex: string; brightness: number; audio?: AudioFeatures }>('/api/frame').pipe(
       map(res => {
+        this.audioLive.set(res.audio ?? null);
         const pixels: RGB[] = new Array(res.n);
         for (let i = 0; i < res.n; i++) {
           const o = i * 6;
@@ -185,6 +190,22 @@ export class RgbService {
     } catch (e) {
       this.fail(e as HttpErrorResponse);
       return false;
+    }
+  }
+
+  // ------------------------------------------------------------------- audio
+  async loadAudio(): Promise<void> {
+    try { this.audio.set(await firstValueFrom(this.http.get<AudioStatus>('/api/audio'))); } catch { /* panel shows unavailable */ }
+  }
+
+  async setAudio(patch: Partial<{ source: string; sensitivity: number; sync: boolean; output: string; demoBpm: number }>): Promise<void> {
+    const cur = this.audio();
+    if (cur) { this.audio.set({ ...cur, ...patch } as AudioStatus); }
+    try {
+      this.audio.set(await firstValueFrom(this.http.post<AudioStatus>('/api/audio', patch)));
+    } catch (e) {
+      this.fail(e as HttpErrorResponse);
+      await this.loadAudio();
     }
   }
 

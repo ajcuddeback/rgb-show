@@ -23,6 +23,7 @@ from tree import TreeLayout
 from engine import AnimationEngine
 from presets import PresetStore
 from animations import registry
+from audio.engine import AudioEngine
 
 logging.basicConfig(level=os.environ.get("RGB_LOG_LEVEL", "INFO"),
                     format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -41,12 +42,13 @@ def create_app(config: Config = None) -> Flask:
     )
     config.simulate = controller.simulated
     tree = TreeLayout(config.resolved_rings())
-    engine = AnimationEngine(controller, tree, config)
+    audio = AudioEngine(config.audio_fifo)
+    engine = AnimationEngine(controller, tree, config, audio=audio)
     presets = PresetStore(config.presets_file)
 
     app = Flask(__name__, static_folder=None)
     app.config["JSON_SORT_KEYS"] = False
-    app.extensions["rgb"] = {"config": config, "controller": controller, "engine": engine, "presets": presets}
+    app.extensions["rgb"] = {"config": config, "controller": controller, "engine": engine, "presets": presets, "audio": audio}
 
     log.info("rgb-show: %d pixels on %s, rings=%s, simulated=%s",
              config.num_pixels, config.pin_name, tree.rings, controller.simulated)
@@ -79,7 +81,24 @@ def create_app(config: Config = None) -> Flask:
     def full_state() -> dict:
         s = engine.state()
         s["config"] = {**config.public(), **engine.layout()}
+        s["audio"] = audio.settings()
         return s
+
+    # ----------------------------------------------------------------- audio
+    @app.get("/api/audio")
+    def get_audio():
+        return jsonify(audio.status())
+
+    @app.post("/api/audio")
+    def set_audio():
+        data = body()
+        try:
+            audio.set(source=data.get("source"), sensitivity=data.get("sensitivity"), sync=data.get("sync"),
+                      output=data.get("output"), demo_bpm=data.get("demoBpm"))
+        except ValueError as exc:
+            abort(400, description=str(exc))
+        engine.save()
+        return jsonify(audio.status())
 
     @app.get("/api/layout")
     def get_layout():
@@ -201,8 +220,12 @@ def create_app(config: Config = None) -> Flask:
         # Compact: one hex string ("rrggbb" per pixel) is ~60% smaller than a JSON array of arrays,
         # which matters because the live preview polls this several times a second.
         frame = controller.get_frame()
-        return jsonify({"n": len(frame), "hex": "".join("%02x%02x%02x" % c for c in frame),
-                        "brightness": controller.brightness})
+        payload = {"n": len(frame), "hex": "".join("%02x%02x%02x" % c for c in frame), "brightness": controller.brightness}
+        if audio.source_id != "off":
+            f = audio.features()
+            payload["audio"] = {k: (round(v, 3) if isinstance(v, float) else v)
+                                for k, v in f.items() if k in ("level", "bass", "mid", "treble", "beat_env", "bpm", "active", "onset")}
+        return jsonify(payload)
 
     # --------------------------------------------------------------- presets
     @app.get("/api/presets")
@@ -253,6 +276,7 @@ def create_app(config: Config = None) -> Flask:
 
     engine.restore()
     atexit.register(engine.shutdown)
+    atexit.register(audio.shutdown)
     return app
 
 

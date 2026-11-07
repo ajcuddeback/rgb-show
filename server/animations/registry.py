@@ -14,7 +14,7 @@ from .base import Animation
 
 log = logging.getLogger(__name__)
 
-CATEGORY_ORDER = ["Static", "Motion", "Sparkle", "Nature", "Showpiece"]
+CATEGORY_ORDER = ["Static", "Motion", "Sparkle", "Nature", "Showpiece", "Music"]
 
 _registry: Dict[str, Type[Animation]] = {}
 

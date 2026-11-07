@@ -134,7 +134,8 @@ export class TreePreviewComponent implements AfterViewInit, OnDestroy {
   }
 
   private poll(): void {
-    if (!this.svc.power() || this.inflight || document.visibilityState !== 'visible') { return; }
+    const audioOn = (this.svc.audio()?.source ?? 'off') !== 'off';
+    if ((!this.svc.power() && !audioOn) || this.inflight || document.visibilityState !== 'visible') { return; }
     this.inflight = true;
     this.svc.getFrame().subscribe({
       next: res => { this.inflight = false; this.frame = res.pixels; this.draw(); },

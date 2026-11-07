@@ -16,6 +16,7 @@ def config(tmp_path):
     return Config(
         num_pixels=100, simulate=True, autostart=False, fps=60,
         state_file=str(tmp_path / "state.json"), presets_file=str(tmp_path / "presets.json"),
+        audio_fifo=str(tmp_path / "audio.fifo"),
     )
 
 
@@ -24,6 +25,7 @@ def app(config):
     application = create_app(config)
     yield application
     application.extensions["rgb"]["engine"].shutdown()
+    application.extensions["rgb"]["audio"].shutdown()
 
 
 @pytest.fixture
