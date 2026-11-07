@@ -158,7 +158,7 @@ class Fireworks(Animation):
     PARAMS = [
         Param("colors", "colors", "Burst colors", [(255, 40, 40), (60, 255, 80), (80, 120, 255), GOLD, WHITE]),
         Param("rate", "number", "Launches per second", 0.7, min=0.1, max=3, step=0.1),
-        Param("size", "number", "Burst size", 0.7, min=0.15, max=1.4, step=0.05),
+        Param("burst", "number", "Burst size", 0.7, min=0.15, max=1.4, step=0.05),
         Param("background", "color", "Background", BLACK),
     ]
     PREVIEW = [(255, 40, 40), (60, 255, 80), (80, 120, 255), GOLD]
@@ -173,7 +173,7 @@ class Fireworks(Animation):
     def render(self, t):
         colors = self.p("colors")
         rate = self.p("rate")
-        size = self.p("size")
+        size = self.p("burst")
         bg = self.p("background")
         tree = self.tree
         n = self.n

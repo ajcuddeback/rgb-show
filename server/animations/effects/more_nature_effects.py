@@ -64,7 +64,7 @@ class Icicles(Animation):
         Param("background", "color", "Frost color", (0, 25, 60)),
         Param("drip", "color", "Drip color", (200, 240, 255)),
         Param("count", "number", "Drips", 8, min=1, max=25, step=1),
-        Param("length", "number", "Drip length", 0.18, min=0.05, max=0.5, step=0.01),
+        Param("drip_length", "number", "Drip length", 0.18, min=0.05, max=0.5, step=0.01),
         Param("tempo", "number", "Speed", 1, min=0.2, max=3, step=0.1),
     ]
     PREVIEW = [(200, 240, 255), (0, 25, 60)]
@@ -80,7 +80,7 @@ class Icicles(Animation):
         bg = self.p("background")
         dc = self.p("drip")
         count = int(self.p("count"))
-        length = self.p("length")
+        length = self.p("drip_length")
         tempo = self.p("tempo")
         tree = self.tree
         n = self.n

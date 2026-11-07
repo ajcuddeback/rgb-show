@@ -118,3 +118,11 @@ def test_stop_is_instant_even_mid_sleep():
     th.join(timeout=2)
     assert not th.is_alive()
     assert time.monotonic() - t0 < 0.5
+
+
+def test_old_preset_params_are_ignored_not_clamped():
+    """Params whose units changed were renamed so saved presets fall back to defaults instead of extremes."""
+    fw = registry.get("fireworks").coerce_params({"size": 14})
+    assert "size" not in fw and fw["burst"] == 0.7
+    ic = registry.get("icicles").coerce_params({"length": 5})
+    assert "length" not in ic and ic["drip_length"] == 0.18
